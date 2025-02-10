@@ -54,7 +54,7 @@ namespace mc_clone
         }
 
         // DDA algorithm basedon https://lodev.org/cgtutor/raycasting.html
-        public Nullable<(Block block, Vector3 point, (int x, int y, int z) coords)> CastRay(Ray ray)
+        public Nullable<(Block block, BlockFaceDirection, (int x, int y, int z) coords)> CastRay(Ray ray)
         {
             var gridCoords = Vec3ToGridCoords(ray.Position);
 
@@ -125,11 +125,19 @@ namespace mc_clone
                 {
                     throw new Exception("Error in DDA: Found now lowest value for side dists.");
                 }
-                if (GetBlock(gridCoords.x, gridCoords.y, gridCoords.z) != null)
+                Block hitBlock = GetBlock(gridCoords.x, gridCoords.y, gridCoords.z);
+                if (hitBlock != null)
                 {
                     hit = true;
-                    return (GetBlock(gridCoords.x, gridCoords.y, gridCoords.z), 
-                        new Vector3(sideDistX, sideDistY, sideDistZ),
+                    BlockFaceDirection faceDir = side switch
+                    {
+                        'x' => stepX == 1 ? BlockFaceDirection.East : BlockFaceDirection.West,
+                        'y' => stepY == 1 ? BlockFaceDirection.Bottom : BlockFaceDirection.Top,
+                        'z' => stepZ == 1 ? BlockFaceDirection.South : BlockFaceDirection.North,
+                        _ => throw new Exception("Error getting face direction in DDA algorithm."),
+                    };
+                    return (hitBlock, 
+                        faceDir,
                         gridCoords);
                 }
             }

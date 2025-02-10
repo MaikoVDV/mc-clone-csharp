@@ -35,9 +35,20 @@ namespace mc_clone
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, Vector3 point, (int x, int y, int z) coords))
+                if (hit is (Block block, BlockFaceDirection side, (int x, int y, int z) coords))
                 {
                     world.RemoveBlock(coords);
+                }
+            }
+            if (mouseState.RightButton == ButtonState.Pressed)
+            {
+                Ray pointer = new Ray(camera.Position, camera.ViewDirection);
+                var hit = world.CastRay(pointer);
+
+                if (hit is (Block block, BlockFaceDirection side, (int x, int y, int z) coords))
+                {
+                    var newBlockLocation = side.ToOffsetVector() + coords;
+                    world.AddBlock(coords, BlockTypes.Grass);
                 }
             }
         }
