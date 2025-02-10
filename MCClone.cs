@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,16 +9,13 @@ namespace mc_clone
     public class MCClone : Game
     {
         private GraphicsDeviceManager _graphics;
-        private BasicEffect _effect;
-        private VertexBuffer _vertexBuffer;
-        private IndexBuffer _indexBuffer;
+        private Texture2D _textureAtlas;
 
-        private Camera mainCam;
+        private Player player;
+        private World world;
 
         private bool paused = false;
 
-        public static readonly short CHUNK_SIZE_XZ = 16;
-        public static readonly short CHUNK_SIZE_Y = 16;
 
         public MCClone()
         {
@@ -27,74 +23,32 @@ namespace mc_clone
             _graphics.PreferredBackBufferWidth = 1080;
             _graphics.PreferredBackBufferHeight = 720;
             Content.RootDirectory = "Content";
+
+            //IsFixedTimeStep = false;
+            Window.AllowUserResizing = true;
+        }
+
+        protected override void LoadContent()
+        {
+            _textureAtlas = Content.Load<Texture2D>("texture_atlas");
+            Globals.TEXTURE_STEP_FACTOR = new Vector2(
+                (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Width,
+                (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Height);
+
+            base.LoadContent();
         }
 
         protected override void Initialize()
         {
             base.Initialize();
 
-            //// Define cube vertices (8 corners)
-            //VertexPositionColor[] vertices = new VertexPositionColor[]
-            //{
-            //new VertexPositionColor(new Vector3(-1, -1, -1), Color.Red), // 0
-            //new VertexPositionColor(new Vector3(1, -1, -1), Color.Green), // 1
-            //new VertexPositionColor(new Vector3(1, 1, -1), Color.Blue), // 2
-            //new VertexPositionColor(new Vector3(-1, 1, -1), Color.Yellow), // 3
-            //new VertexPositionColor(new Vector3(-1, -1, 1), Color.Cyan), // 4
-            //new VertexPositionColor(new Vector3(1, -1, 1), Color.Magenta), // 5
-            //new VertexPositionColor(new Vector3(1, 1, 1), Color.White), // 6
-            //new VertexPositionColor(new Vector3(-1, 1, 1), Color.Black) // 7
-            //};
+            world = new World(GraphicsDevice, _textureAtlas);
 
-            //// Define indices (two triangles per face, 6 faces, 12 triangles)
-            //short[] indices = new short[]
-            //{
-            //0, 1, 2,  0, 2, 3, // Front
-            //1, 5, 6,  1, 6, 2, // Right
-            //5, 4, 7,  5, 7, 6, // Back
-            //4, 0, 3,  4, 3, 7, // Left
-            //3, 2, 6,  3, 6, 7, // Top
-            //4, 5, 1,  4, 1, 0  // Bottom
-            //};
+            // Initialize the player with a camera and reference to the world
+            Camera playerCam = new Camera((_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight));
+            player = new Player(world, playerCam);
 
-            //for (int i = 0; i < vertices.Length; i++)
-            //{
-            //    vertices[i].Position.Z -= 5;
-            //}
-
-            Chunk chunk = new Chunk();
-            var mesh = chunk.BuildMesh();
-
-            for (int i = 0; i < mesh.vertices.Length; i++)
-            {
-                mesh.vertices[i].Position.Z -= 5;
-            }
-            Debug.WriteLine(mesh.indices.Length);
-            _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), mesh.vertices.Length, BufferUsage.WriteOnly);
-            _vertexBuffer.SetData(mesh.vertices);
-
-            _indexBuffer = new IndexBuffer(GraphicsDevice, IndexElementSize.ThirtyTwoBits, mesh.indices.Length, BufferUsage.WriteOnly);
-            _indexBuffer.SetData(mesh.indices);
-
-            //for (int i = 0; i < mesh.indices.Length - 2; i += 3)
-            //{
-            //    Debug.WriteLine($"{mesh.indices[i]}, {mesh.indices[i + 1]}, {mesh.indices[i + 2]}, ");
-            //}
-            //for (int i = 0; i < mesh.vertices.Length - 2; i += 3)
-            //{
-            //    Debug.WriteLine($"{mesh.vertices[i]}, {mesh.vertices[i + 1]}, {mesh.vertices[i + 2]}, ");
-            //}
-
-            // Initialize BasicEffect
-            _effect = new BasicEffect(GraphicsDevice)
-            {
-                VertexColorEnabled = true,
-                LightingEnabled = false
-            };
-
-            // Initialize the camera
-            mainCam = new Camera((_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight));
-
+            // Configure mouse
             Mouse.SetPosition(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2);
             IsMouseVisible = false;
         }
@@ -115,8 +69,8 @@ namespace mc_clone
                     IsMouseVisible = true;
                     paused = true;
                 }
-
-                mainCam.Update(gameTime, GraphicsDevice, keyState, mouseState);
+                world.Update(GraphicsDevice);
+                player.Update(gameTime, GraphicsDevice, keyState, mouseState);
 
             } else
             {
@@ -133,26 +87,11 @@ namespace mc_clone
 
         protected override void Draw(GameTime gameTime)
         {
-            //if (!IsActive) return; // If application unfocussed, don't draw.
-
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp; // Don't interpolated pixel art textures.
 
-            // Set vertex and index buffers
-            GraphicsDevice.SetVertexBuffer(_vertexBuffer);
-            GraphicsDevice.Indices = _indexBuffer;
 
-            (Matrix view, Matrix projection) = mainCam.Matrices;
-
-            _effect.World = Matrix.Identity;
-            _effect.View = view;
-            _effect.Projection = projection;
-
-            // Apply effect and draw
-            foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _indexBuffer.IndexCount);
-            }
+            world.Draw(GraphicsDevice, player.camera);
 
             base.Draw(gameTime);
         }

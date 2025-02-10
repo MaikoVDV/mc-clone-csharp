@@ -9,7 +9,16 @@ namespace mc_clone
     internal class Camera
     {
         private Vector3 position;
+        public Vector3 Position { get { return position; } }
         private Vector3 viewTarget;
+        public Vector3 ViewDirection {  
+            get {
+                return new Vector3(
+                    (float)(Math.Cos(yaw) * Math.Cos(pitch)),
+                    (float)Math.Sin(pitch),
+                    (float)(Math.Sin(yaw) * Math.Cos(pitch))
+                );
+        }}
         private readonly Vector3 upVector;
         private float moveSpeed = 0.2f;
 
@@ -30,14 +39,13 @@ namespace mc_clone
 
         public Camera((float width, float height) windowDimensions)
         {
-            position = new Vector3(0, 0, 5);
+            position = new Vector3(-8, 24, 8);
             viewTarget = Vector3.Zero;
             upVector = Vector3.Up;
 
             // Set camera matrices
             view = Matrix.CreateLookAt(position, viewTarget, upVector);
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, windowDimensions.width / (float)windowDimensions.height, 0.1f, 100f);
-
+            projection = Matrix.CreatePerspectiveFieldOfView(80f * ((float)Math.PI / 180f), windowDimensions.width / (float)windowDimensions.height, 0.1f, 1000f);
         }
 
         public void Update(
@@ -77,14 +85,8 @@ namespace mc_clone
             // Clamp vertical rotation to avoid flipping
             pitch = MathHelper.Clamp(pitch, -MathHelper.PiOver2 + 0.1f, MathHelper.PiOver2 - 0.1f);
 
-            // Calculate new camera direction
-            Vector3 cameraDirection = new Vector3(
-                (float)(Math.Cos(yaw) * Math.Cos(pitch)),
-                (float)Math.Sin(pitch),
-                (float)(Math.Sin(yaw) * Math.Cos(pitch))
-            );
 
-            viewTarget = position + Vector3.Normalize(cameraDirection);
+            viewTarget = position + Vector3.Normalize(ViewDirection);
             if (keyState.IsKeyDown(Keys.C))
                 viewTarget = position + new Vector3(0, 0, -5);
 

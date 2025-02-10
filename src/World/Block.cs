@@ -11,8 +11,15 @@ namespace mc_clone
 {
     internal class Block
     {
+        private BlockTypes type;
+        public BlockTypes Type { get { return type; } }
         private CubeMesh mesh = new CubeMesh();
         public CubeMesh Mesh { get { return mesh; } }
+
+        public Block(BlockTypes type)
+        {
+            this.type = type;
+        }
     }
 
     internal struct CubeMesh
@@ -36,12 +43,14 @@ namespace mc_clone
     internal struct BlockFace
     {
         public BlockFaceDirection direction;
-        public VertexPositionColor[] vertices;
+        public Vector3[] vertices;
+        //public (int x, int y) textureCoords; // Integer coordinates for which part of the texture atlas. These are NOT UV coordinates.
 
-        public BlockFace(BlockFaceDirection direction)
+        public BlockFace(BlockFaceDirection direction /*, (int x, int y) textureCoords*/)
         {
             this.direction = direction;
             this.vertices = direction.ToDefaultVertices();
+            //this.textureCoords = textureCoords;
         }
     }
 
@@ -67,51 +76,51 @@ namespace mc_clone
             };
         }
 
-        public static VertexPositionColor[] ToDefaultVertices(this BlockFaceDirection direction)
+        public static Vector3[] ToDefaultVertices(this BlockFaceDirection direction)
         {
             return direction switch
             {
-                BlockFaceDirection.Top => new VertexPositionColor[]
+                BlockFaceDirection.Top => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(0, 1, 0), Color.Green),
-                        new VertexPositionColor(new Vector3(0, 1, 1), Color.Green),
-                        new VertexPositionColor(new Vector3(1, 1, 1), Color.Green),
-                        new VertexPositionColor(new Vector3(1, 1, 0), Color.Green),
+                        new Vector3(0, 1, 0),
+                        new Vector3(0, 1, 1),
+                        new Vector3(1, 1, 1),
+                        new Vector3(1, 1, 0),
                     },
-                BlockFaceDirection.Bottom => new VertexPositionColor[]
+                BlockFaceDirection.Bottom => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(0, 0, 0), Color.Yellow),
-                        new VertexPositionColor(new Vector3(1, 0, 0), Color.Yellow),
-                        new VertexPositionColor(new Vector3(1, 0, 1), Color.Yellow),
-                        new VertexPositionColor(new Vector3(0, 0, 1), Color.Yellow),
+                        new Vector3(0, 0, 0),
+                        new Vector3(1, 0, 0),
+                        new Vector3(1, 0, 1),
+                        new Vector3(0, 0, 1),
                     },
-                BlockFaceDirection.East => new VertexPositionColor[]
+                BlockFaceDirection.East => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(0, 1, 1), Color.HotPink),
-                        new VertexPositionColor(new Vector3(0, 1, 0), Color.HotPink),
-                        new VertexPositionColor(new Vector3(0, 0, 0), Color.HotPink),
-                        new VertexPositionColor(new Vector3(0, 0, 1), Color.HotPink),
+                        new Vector3(0, 0, 1),
+                        new Vector3(0, 1, 1),
+                        new Vector3(0, 1, 0),
+                        new Vector3(0, 0, 0),
                     },
-                BlockFaceDirection.West => new VertexPositionColor[]
+                BlockFaceDirection.West => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(1, 1, 0), Color.Purple),
-                        new VertexPositionColor(new Vector3(1, 1, 1), Color.Purple),
-                        new VertexPositionColor(new Vector3(1, 0, 1), Color.Purple),
-                        new VertexPositionColor(new Vector3(1, 0, 0), Color.Purple),
+                        new Vector3(1, 0, 0),
+                        new Vector3(1, 1, 0),
+                        new Vector3(1, 1, 1),
+                        new Vector3(1, 0, 1),
                     },
-                BlockFaceDirection.South => new VertexPositionColor[]
+                BlockFaceDirection.South => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(0, 0, 0), Color.Red),
-                        new VertexPositionColor(new Vector3(0, 1, 0), Color.Red),
-                        new VertexPositionColor(new Vector3(1, 1, 0), Color.Red),
-                        new VertexPositionColor(new Vector3(1, 0, 0), Color.Red),
+                        new Vector3(0, 0, 0),
+                        new Vector3(0, 1, 0),
+                        new Vector3(1, 1, 0),
+                        new Vector3(1, 0, 0),
                     },
-                BlockFaceDirection.North => new VertexPositionColor[]
+                BlockFaceDirection.North => new Vector3[]
                     {
-                        new VertexPositionColor(new Vector3(1, 0, 1), Color.Blue),
-                        new VertexPositionColor(new Vector3(1, 1, 1), Color.Blue),
-                        new VertexPositionColor(new Vector3(0, 1, 1), Color.Blue),
-                        new VertexPositionColor(new Vector3(0, 0, 1), Color.Blue),
+                        new Vector3(1, 0, 1),
+                        new Vector3(1, 1, 1),
+                        new Vector3(0, 1, 1),
+                        new Vector3(0, 0, 1),
                     },
                 _ => throw new Exception("Tried getting default vertices for an unknown face direction.")
             };
