@@ -1,11 +1,5 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
 
 namespace mc_clone
 {
@@ -13,22 +7,13 @@ namespace mc_clone
     {
         private BlockTypes type;
         public BlockTypes Type { get { return type; } }
-        private CubeMesh mesh = new CubeMesh();
-        public CubeMesh Mesh { get { return mesh; } }
+        private BlockFace[] faces;
+        public BlockFace[] Faces { get { return faces; } }
 
         public Block(BlockTypes type)
         {
             this.type = type;
-        }
-    }
-
-    internal struct CubeMesh
-    {
-        public BlockFace[] faces;
-
-        public CubeMesh()
-        {
-            faces = new BlockFace[]
+            this.faces = new BlockFace[]
             {
                 new BlockFace(BlockFaceDirection.Top),
                 new BlockFace(BlockFaceDirection.Bottom),

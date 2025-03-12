@@ -3,18 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_clone
 {
     internal class World
     {
-        private Dictionary<(int x, int y), Chunk> chunks = new();
-        private Dictionary<(int x, int y), (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
-        private List<(int x, int y)> chunksToUpdate = new();
+        private Dictionary<ChunkCoordinates, Chunk> chunks = new();
+        private Dictionary<ChunkCoordinates, (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
+        private List<ChunkCoordinates> chunksToUpdate = new();
         private BasicEffect chunkEffect;
 
         public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
@@ -27,117 +23,126 @@ namespace mc_clone
                 TextureEnabled = true,
                 LightingEnabled = false
             };
-            chunks.Add((0, 0), new Chunk());
-            //chunks.Add((1, 0), new Chunk());
-            //chunks.Add((0, 1), new Chunk());
+            chunks.Add(ChunkCoordinates.Zero, new Chunk());
+            chunks.Add(new ChunkCoordinates(1, 0, 0), new Chunk());
+            chunks.Add(new ChunkCoordinates(0, 1, 0), new Chunk());
+            chunks.Add(new ChunkCoordinates(0, 0, 1), new Chunk());
+            chunks.Add(new ChunkCoordinates(0, 1, 1), new Chunk(false));
 
-            foreach (KeyValuePair<(int x, int y), Chunk> chunkEntry in chunks)
+            foreach (KeyValuePair<ChunkCoordinates, Chunk> chunkEntry in chunks)
             {
-                RegenerateChunkMesh(graphicsDevice, chunkEntry.Key.x, chunkEntry.Key.y);
+                RegenerateChunkMesh(graphicsDevice, chunkEntry.Key);
             }
         }
 
-        public void RemoveBlock((int x, int y, int z) coords)
+        public void SetBlock(BlockCoordinates coords, Block block)
         {
-            (int x, int y) chunkCoords = (coords.x / Globals.CHUNK_SIZE_XZ, coords.z / Globals.CHUNK_SIZE_XZ);
-            (int x, int y, int z) blockCoords = (coords.x % Globals.CHUNK_SIZE_XZ, coords.y % Globals.CHUNK_SIZE_Y, coords.z % Globals.CHUNK_SIZE_XZ);
+            ChunkCoordinates chunkCoords = new ChunkCoordinates(
+                (int)MathF.Floor(coords.X / (float)Globals.CHUNK_SIZE_XZ),
+                (int)MathF.Floor(coords.Y / (float)Globals.CHUNK_SIZE_Y),
+                (int)MathF.Floor(coords.Z / (float)Globals.CHUNK_SIZE_XZ));
+
+            BlockCoordinates blockCoords = new BlockCoordinates(
+                coords.X % Globals.CHUNK_SIZE_XZ,
+                coords.Y % Globals.CHUNK_SIZE_Y,
+                coords.Z % Globals.CHUNK_SIZE_XZ);
+
             if (chunks.TryGetValue(chunkCoords, out var chunk))
             {
-                chunks[(chunkCoords.x, chunkCoords.y)].SetBlock(blockCoords, null);
+                chunks[chunkCoords].SetBlock(blockCoords, block);
                 chunksToUpdate.Add(chunkCoords);
-                Debug.WriteLine("Removing block");
             }
         }
-        public void AddBlock((int x, int y, int z) coords, BlockTypes type)
-        {
 
-        }
+        public void RemoveBlock(BlockCoordinates coords) => SetBlock(coords, null);
+
+        public void AddBlock(BlockCoordinates coords, BlockTypes type) => SetBlock(coords, new Block(type));
 
         // DDA algorithm basedon https://lodev.org/cgtutor/raycasting.html
-        public Nullable<(Block block, BlockFaceDirection, (int x, int y, int z) coords)> CastRay(Ray ray)
+        public Nullable<(Block block, BlockFaceDirection, Vector3 hitPoint, BlockCoordinates coords)> CastRay(Ray ray, float maxDistance = float.MaxValue)
         {
-            var gridCoords = Vec3ToGridCoords(ray.Position);
+            BlockCoordinates gridCoords = new BlockCoordinates(ray.Position);
 
-            // Distances from current point to respective sides of the current grid box.
-            float sideDistX, sideDistY, sideDistZ;
+            Vector3 stepDirection = new Vector3(Math.Sign(ray.Direction.X), Math.Sign(ray.Direction.Y), Math.Sign(ray.Direction.Z));
 
             // Length of ray needed to travel to the next grid block for each axis.
             // Check for 0 is just to prevent dividing by zero.
-            float deltaDistX = ray.Direction.X == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.X);
-            float deltaDistY = ray.Direction.Y == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.Y);
-            float deltaDistZ = ray.Direction.Z == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.Z);
-            float perpWallDist;
+            Vector3 deltaDist = new Vector3(
+                ray.Direction.X == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.X),
+                ray.Direction.Y == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.Y),
+                ray.Direction.Z == 0 ? float.MaxValue : MathF.Abs(1 / ray.Direction.Z));
 
-            int stepX, stepY, stepZ;
+            Vector3 sideDist = new Vector3(
+                (stepDirection.X > 0 ? (gridCoords.X + 1f - ray.Position.X) : (ray.Position.X - gridCoords.X)) * deltaDist.X,
+                (stepDirection.Y > 0 ? (gridCoords.Y + 1f - ray.Position.Y) : (ray.Position.Y - gridCoords.Y)) * deltaDist.Y,
+                (stepDirection.Z > 0 ? (gridCoords.Z + 1f - ray.Position.Z) : (ray.Position.Z - gridCoords.Z)) * deltaDist.Z
+                );
+
             bool hit = false;
             char side;
+            BlockFaceDirection faceDir;
 
-            if (ray.Direction.X < 0)
-            {
-                stepX = -1;
-                sideDistX = (ray.Position.X - gridCoords.x) * deltaDistX;
-            } else
-            {
-                stepX = 1;
-                sideDistX = (gridCoords.x + 1f - ray.Position.X) * deltaDistX;
-            }
-            if (ray.Direction.Y < 0)
-            {
-                stepY = -1;
-                sideDistY = (ray.Position.Y - gridCoords.y) * deltaDistY;
-            }
-            else
-            {
-                stepY= 1;
-                sideDistY = (gridCoords.y + 1f - ray.Position.Y) * deltaDistY;
-            }
-            if (ray.Direction.Z < 0)
-            {
-                stepZ = -1;
-                sideDistZ = (ray.Position.Z - gridCoords.z) * deltaDistZ;
-            } else
-            {
-                stepZ = 1;
-                sideDistZ = (gridCoords.z + 1f - ray.Position.Z) * deltaDistZ;
-            }
+            float distanceTravelled = 0;
 
             int index = 0;
             while (!hit && index < 10)
             {
+                float prevDist = distanceTravelled;
                 index++;
-                float lowestSideDist = new[] { sideDistX, sideDistY, sideDistZ }.Min();
-                if (lowestSideDist == sideDistX)
+                if (GetBlock(gridCoords) != null && index == 0)
                 {
-                    sideDistX += deltaDistX;
-                    gridCoords.x += stepX;
+                    // Started DDA search inside a block.
+                    Debug.WriteLine("Started DDA search from inside a block");
+                    return null;
+                }
+
+                if (sideDist.Min() == sideDist.X)
+                {
+                    distanceTravelled = sideDist.X;
+                    sideDist.X += deltaDist.X;
+                    gridCoords += new Vector3(stepDirection.X, 0, 0);
                     side = 'x';
-                } else if (lowestSideDist == sideDistY)
+                } else if (sideDist.Min() == sideDist.Y)
                 {
-                    sideDistY += deltaDistY;
-                    gridCoords.y += stepY;
+                    distanceTravelled = sideDist.Y;
+                    sideDist.Y += deltaDist.Y;
+                    gridCoords += new Vector3(0, stepDirection.Y, 0);
                     side = 'y';
-                } else if (lowestSideDist == sideDistZ)
+                } else if (sideDist.Min() == sideDist.Z)
                 {
-                    sideDistZ += deltaDistZ;
-                    gridCoords.z += stepZ;
+                    distanceTravelled = sideDist.Z;
+                    sideDist.Z += deltaDist.Z;
+                    gridCoords += new Vector3(0, 0, stepDirection.Z);
                     side = 'z';
                 } else
                 {
                     throw new Exception("Error in DDA: Found now lowest value for side dists.");
                 }
-                Block hitBlock = GetBlock(gridCoords.x, gridCoords.y, gridCoords.z);
+
+                switch (side)
+                {
+                    case 'x':
+                        faceDir = stepDirection.X == 1 ? BlockFaceDirection.East : BlockFaceDirection.West;
+                        break;
+                    case 'y':
+                        faceDir = stepDirection.Y == 1 ? BlockFaceDirection.Bottom : BlockFaceDirection.Top;
+                        break;
+                    case 'z':
+                        faceDir = stepDirection.Z == 1 ? BlockFaceDirection.South : BlockFaceDirection.North;
+                        break;
+                    default: throw new Exception("wat");
+                }
+
+
+                Vector3 currentRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
+                if (distanceTravelled >= maxDistance) return null;
+                Block hitBlock = GetBlock(gridCoords);
                 if (hitBlock != null)
                 {
                     hit = true;
-                    BlockFaceDirection faceDir = side switch
-                    {
-                        'x' => stepX == 1 ? BlockFaceDirection.East : BlockFaceDirection.West,
-                        'y' => stepY == 1 ? BlockFaceDirection.Bottom : BlockFaceDirection.Top,
-                        'z' => stepZ == 1 ? BlockFaceDirection.South : BlockFaceDirection.North,
-                        _ => throw new Exception("Error getting face direction in DDA algorithm."),
-                    };
                     return (hitBlock, 
                         faceDir,
+                        currentRayPoint,
                         gridCoords);
                 }
             }
@@ -145,22 +150,22 @@ namespace mc_clone
             return null;
         }
 
-        public void RegenerateChunkMesh(GraphicsDevice graphicsDevice, int x, int y)
+        public void RegenerateChunkMesh(GraphicsDevice graphicsDevice, ChunkCoordinates coords)
         {
-            (VertexPositionTexture[] vertices, int[] indices) = chunks[(x, y)].BuildMesh();
+            (VertexPositionTexture[] vertices, int[] indices) = chunks[coords].BuildMesh();
+            if (vertices.Length == 0 || indices.Length == 0) return;
             VertexBuffer vb = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
             IndexBuffer ib = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
             vb.SetData(vertices);
             ib.SetData(indices);
-            chunkMeshes[(x, y)] = (vb, ib);
+            chunkMeshes[coords] = (vb, ib);
         }
 
         public void Update(GraphicsDevice graphicsDevice)
         {
-            foreach ((int x, int y) chunkCoords in chunksToUpdate)
+            foreach (ChunkCoordinates coords in chunksToUpdate)
             {
-                Debug.WriteLine("Updating chunk.");
-                RegenerateChunkMesh(graphicsDevice, chunkCoords.x, chunkCoords.y);
+                RegenerateChunkMesh(graphicsDevice, coords);
             }
             chunksToUpdate.Clear();
         }
@@ -172,13 +177,13 @@ namespace mc_clone
             chunkEffect.View = view;
             chunkEffect.Projection = projection;
 
-            foreach ((var coords, var mesh) in chunkMeshes)
+            foreach ((ChunkCoordinates coords, var mesh) in chunkMeshes)
             {
-                // Load mesh
+                // Load faces
                 graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
                 graphicsDevice.Indices = mesh.indexBuffer;
 
-                chunkEffect.World = Matrix.CreateTranslation(coords.x * Globals.CHUNK_SIZE_XZ, 0, coords.y * Globals.CHUNK_SIZE_XZ);
+                chunkEffect.World = Matrix.CreateTranslation(coords.X * Globals.CHUNK_SIZE_XZ, coords.Y * Globals.CHUNK_SIZE_Y, coords.Z * Globals.CHUNK_SIZE_XZ);
 
                 // Apply effect and draw
                 foreach (EffectPass pass in chunkEffect.CurrentTechnique.Passes)
@@ -188,21 +193,44 @@ namespace mc_clone
                 }
             }
         }
-
-        // Rounds down a vector3 point to be used as block coordinates in the voxel world.
-        public (int x, int y, int z) Vec3ToGridCoords(Vector3 point)
+        public BlockCoordinates[] GetBlocksInAABB(Vector3 min, Vector3 max)
         {
-            return ((int)MathF.Floor(point.X),
-                (int)MathF.Floor(point.Y),
-                (int)MathF.Floor(point.Z));
+            List<BlockCoordinates> output = new();
+            BlockCoordinates minCoords = new BlockCoordinates(min);
+            BlockCoordinates maxCoords = new BlockCoordinates(max);
+            for (int y = minCoords.Y; y < maxCoords.Y; y++)
+            {
+                for (int z = minCoords.Z; z < maxCoords.Z; z++)
+                {
+                    for (int x = minCoords.X; x < maxCoords.X; x++)
+                    {
+                        if (GetBlock(x, y, z) is Block _)
+                        {
+                            output.Add(new BlockCoordinates(x, y, z));
+                        }
+                    }
+                }
+            }
+            return output.ToArray();
         }
-        public Block GetBlock(int x, int y, int z) {
-            (int x, int y) chunkCoords = (x / Globals.CHUNK_SIZE_XZ, z / Globals.CHUNK_SIZE_XZ);
-            (int x, int y, int z) blockCoords = (x % Globals.CHUNK_SIZE_XZ, y % Globals.CHUNK_SIZE_Y, z % Globals.CHUNK_SIZE_XZ);
-            if (chunks.TryGetValue(chunkCoords, out var chunk)) {
-                return chunks[(chunkCoords.x, chunkCoords.y)].GetBlock(blockCoords.x, blockCoords.y, blockCoords.z);
+
+        public Block GetBlock(BlockCoordinates globalCoords) {
+            ChunkCoordinates chunkCoords = new ChunkCoordinates(
+                globalCoords.X / Globals.CHUNK_SIZE_XZ,
+                globalCoords.Y / Globals.CHUNK_SIZE_Y,
+                globalCoords.Z / Globals.CHUNK_SIZE_XZ);
+
+            BlockCoordinates localCoords = new BlockCoordinates(
+                globalCoords.X % Globals.CHUNK_SIZE_XZ,
+                globalCoords.Y % Globals.CHUNK_SIZE_Y,
+                globalCoords.Z % Globals.CHUNK_SIZE_XZ);
+
+            if (chunks.TryGetValue(chunkCoords, out var chunk))
+            {
+                return chunks[chunkCoords].GetBlock(localCoords);
             }
             return null;
         }
+        public Block GetBlock(int x, int y, int z) { return GetBlock(new BlockCoordinates(x, y, z)); }
     }
 }

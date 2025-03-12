@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace mc_clone
 {
@@ -11,9 +12,10 @@ namespace mc_clone
     {
         public Block[,,] blocks;
 
-        public Chunk()
+        public Chunk(bool fill = true)
         {
-            blocks = GenerateChunk();
+            blocks = new Block[Globals.CHUNK_SIZE_XZ, Globals.CHUNK_SIZE_Y, Globals.CHUNK_SIZE_XZ];
+            if(fill) blocks = GenerateChunk();
         }
 
         public (VertexPositionTexture[] vertices, int[] indices) BuildMesh()
@@ -32,9 +34,9 @@ namespace mc_clone
                         if (block == null) continue;
 
                         // Build each face individually
-                        for (int i = 0; i < block.Mesh.faces.Count(); i++)
+                        for (int i = 0; i < block.Faces.Count(); i++)
                         {
-                            BlockFace face = block.Mesh.faces[i];
+                            BlockFace face = block.Faces[i];
 
                             Vector3 neighborOffset = face.direction.ToOffsetVector();
                             Block neighbor = GetBlock(
@@ -77,16 +79,20 @@ namespace mc_clone
             return (chunkVertices.ToArray(), chunkIndices.ToArray());
         }
 
+        public Block GetBlock(BlockCoordinates coords)
+        {
+            if (coords.X < 0 || coords.X >= blocks.GetLength(0)) return null;
+            if (coords.Y < 0 || coords.Y >= blocks.GetLength(1)) return null;
+            if (coords.Z < 0 || coords.Z >= blocks.GetLength(2)) return null;
+            return blocks[coords.X, coords.Y, coords.Z];
+        }
         public Block GetBlock(int x, int y, int z)
         {
-            if (x < 0 || x >= blocks.GetLength(0)) return null;
-            if (y < 0 || y >= blocks.GetLength(1)) return null;
-            if (z < 0 || z >= blocks.GetLength(2)) return null;
-            return blocks[x, y, z];
+            return GetBlock(new BlockCoordinates(x, y, z));
         }
-        public void SetBlock((int x, int y,int z) coords, Block block)
+        public void SetBlock(BlockCoordinates coords, Block block)
         {
-            blocks[coords.x, coords.y, coords.z] = block;
+            blocks[coords.X, coords.Y, coords.Z] = block;
         }
 
         private Block[,,] GenerateChunk()
@@ -110,6 +116,77 @@ namespace mc_clone
                 }
             }
             return blocks;
+        }
+    }
+
+    public class ChunkCoordinates
+    {
+        int x,y,z;
+        public int X { get { return this.x; } }
+        public int Y { get { return this.y; } }
+        public int Z { get { return this.z; } }
+
+        public ChunkCoordinates(int x, int y, int z)
+        {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+        public ChunkCoordinates(Vector3 position)
+        {
+            this.x = (int)MathF.Floor(position.X);
+            this.y = (int)MathF.Floor(position.Y);
+            this.z = (int)MathF.Floor(position.Z);
+        }
+        public static ChunkCoordinates Zero
+        {
+            get
+            {
+                return new ChunkCoordinates(0, 0, 0);
+            }
+        }
+        public override string ToString()
+        {
+            return $"ChunkCoordinates ({x}, {y}, {z})";
+        }
+        public static bool operator ==(ChunkCoordinates a, ChunkCoordinates b)
+        {
+            return a.x == b.x && a.y == b.y && a.z == b.z;
+        }
+        public static bool operator !=(ChunkCoordinates a, ChunkCoordinates b)
+        {
+            return a.x != b.x || a.y != b.y || a.z != b.z;
+        }
+        public override bool Equals(object obj)
+        {
+            if (obj is ChunkCoordinates other)
+            {
+                return this == other;
+            }
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(x, y, z);
+        }
+
+        public static ChunkCoordinates operator +(ChunkCoordinates a, ChunkCoordinates b)
+        {
+            return new ChunkCoordinates(a.x + b.x, a.y + b.y, a.z + b.z);
+        }
+        public static ChunkCoordinates operator -(ChunkCoordinates a, ChunkCoordinates b)
+        {
+            return new ChunkCoordinates(a.x - b.x, a.y - b.y, a.z - b.z);
+        }
+        public static ChunkCoordinates operator +(ChunkCoordinates a, Vector3 b)
+        {
+            ChunkCoordinates bNew = new ChunkCoordinates(b);
+            return a + bNew;
+        }
+        public static ChunkCoordinates operator -(ChunkCoordinates a, Vector3 b)
+        {
+            ChunkCoordinates bNew = new ChunkCoordinates(b);
+            return a - bNew;
         }
     }
 }

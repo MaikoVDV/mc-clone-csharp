@@ -1,24 +1,26 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace mc_clone
 {
-    internal class Player
+    internal class Player : PhysicsEntity
     {
         public Camera camera;
-        private World world;
+        private MouseState prevMouseState;
+        private float accelForce = 0.5f;
+        private float jumpForce = 10f;
 
-        public Player(World world, Camera camera)
+        private Vector3 cameraOffset = new Vector3(0, 1.5f, 0);
+
+        public Player(World world, Camera camera) : base(world)
         {
-            this.world = world;
             this.camera = camera;
+
+            this.position = new Vector3(22, 17, 12);
+            this.maxSpeed = 3;
+            this.dragVector = new Vector3(1.5f, 0f, 1.5f);
+            this.gravityVector = new Vector3(0, -0.5f, 0);
         }
 
         public void Update(
@@ -28,29 +30,61 @@ namespace mc_clone
             MouseState mouseState
         )
         {
+            // Camera movement (WASD, LCtrl, Space)
+            Vector3 forward = camera.ViewDirectionFlat;
+            Vector3 right = Vector3.Normalize(Vector3.Cross(forward, Vector3.Up));
+
+            if (keyState.IsKeyDown(Keys.W))
+                ApplyForce(forward * accelForce);
+            if (keyState.IsKeyDown(Keys.S))
+                ApplyForce(-forward * accelForce);
+            if (keyState.IsKeyDown(Keys.A))
+                ApplyForce(-right * accelForce);
+            if (keyState.IsKeyDown(Keys.D))
+                ApplyForce(right * accelForce);
+            if (keyState.IsKeyDown(Keys.Space) && OnGround)
+                ApplyForce(Vector3.Up * jumpForce);
+            if (keyState.IsKeyDown(Keys.LeftShift))
+                ApplyForce(-Vector3.Up * accelForce);
+
+            UpdatePhysics(gameTime);
+
+            camera.Position = position + cameraOffset;
             camera.Update(gameTime, graphicsDevice, keyState, mouseState);
 
-            if (mouseState.LeftButton == ButtonState.Pressed)
+            // Placing and breaking blocks
+            if (SingleClickLeft(mouseState))
             {
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, BlockFaceDirection side, (int x, int y, int z) coords))
+                if (hit is (Block block, BlockFaceDirection side, Vector3 point, BlockCoordinates coords))
                 {
                     world.RemoveBlock(coords);
                 }
             }
-            if (mouseState.RightButton == ButtonState.Pressed)
+            if (SingleClickRight(mouseState))
             {
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, BlockFaceDirection side, (int x, int y, int z) coords))
+                if (hit is (Block block, BlockFaceDirection side, Vector3 point, BlockCoordinates coords))
                 {
-                    var newBlockLocation = side.ToOffsetVector() + coords;
-                    world.AddBlock(coords, BlockTypes.Grass);
+
+                    BlockCoordinates newBlockLocation = coords + side.ToOffsetVector();
+                    world.AddBlock(newBlockLocation, BlockTypes.Grass);
                 }
             }
+
+            prevMouseState = mouseState;
+        }
+        private bool SingleClickLeft(MouseState currentState)
+        {
+            return currentState.LeftButton == ButtonState.Pressed && prevMouseState.LeftButton == ButtonState.Released;
+        }
+        private bool SingleClickRight(MouseState currentState)
+        {
+            return currentState.RightButton == ButtonState.Pressed && prevMouseState.RightButton == ButtonState.Released;
         }
     }
 }

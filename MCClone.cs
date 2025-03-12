@@ -90,6 +90,14 @@ namespace mc_clone
             GraphicsDevice.Clear(Color.CornflowerBlue);
             GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp; // Don't interpolated pixel art textures.
 
+            //BasicEffect debugEffect = new BasicEffect(GraphicsDevice);
+            //debugEffect.View = player.camera.Matrices.view;
+            //debugEffect.Projection = player.camera.Matrices.projection;
+            //var rayData = world.CastRay(new Ray(new Vector3(24, 17, 18), Vector3.Down), 0.5f);
+            //debugEffect.World = Matrix.CreateTranslation(rayData.Value.hitPoint);
+            
+            //CubeMesh cubeMesh = new CubeMesh();
+            //GraphicsDevice.SetVertexBuffer(cubeMesh.faces[0].vertices);
 
             world.Draw(GraphicsDevice, player.camera);
 

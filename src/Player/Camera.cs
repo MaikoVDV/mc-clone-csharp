@@ -9,8 +9,9 @@ namespace mc_clone
     internal class Camera
     {
         private Vector3 position;
-        public Vector3 Position { get { return position; } }
+        public Vector3 Position { get { return position; } set { position = value; } }
         private Vector3 viewTarget;
+        public Vector3 ViewTarget { get { return viewTarget; } }
         public Vector3 ViewDirection {  
             get {
                 return new Vector3(
@@ -19,8 +20,18 @@ namespace mc_clone
                     (float)(Math.Sin(yaw) * Math.Cos(pitch))
                 );
         }}
+        public Vector3 ViewDirectionFlat
+        {
+            get
+            {
+                return new Vector3(
+                    (float)Math.Cos(yaw),
+                    0,
+                    (float)Math.Sin(yaw)
+                );
+            }
+        }
         private readonly Vector3 upVector;
-        private float moveSpeed = 0.2f;
 
         // Rotation
         private float pitch = 0f; // Up/Down rotation
@@ -54,22 +65,6 @@ namespace mc_clone
             KeyboardState keyState,
             MouseState mouseState
         ) {
-            // Camera movement (WASD, LCtrl, Space)
-            Vector3 forward = Vector3.Normalize(viewTarget - position);
-            Vector3 right = Vector3.Normalize(Vector3.Cross(forward, upVector));
-
-            if (keyState.IsKeyDown(Keys.W))
-                position += forward * moveSpeed;
-            if (keyState.IsKeyDown(Keys.S))
-                position -= forward * moveSpeed;
-            if (keyState.IsKeyDown(Keys.A))
-                position -= right * moveSpeed;
-            if (keyState.IsKeyDown(Keys.D))
-                position += right * moveSpeed;
-            if (keyState.IsKeyDown(Keys.Space))
-                position += upVector * moveSpeed;
-            if (keyState.IsKeyDown(Keys.LeftControl))
-                position -= upVector * moveSpeed;
 
 
             // Get mouse movement from center of window
@@ -93,7 +88,7 @@ namespace mc_clone
             // Update the view matrix
             view = Matrix.CreateLookAt(position, viewTarget, upVector);
 
-            // Reset mouse position to center
+            // Reset mouse parentPos to center
             Mouse.SetPosition(centerX, centerY);
         }
     }
