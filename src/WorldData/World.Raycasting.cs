@@ -1,12 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace mc_clone
+using mc_clone.src.WorldData.Blocks;
+using mc_clone.src.WorldData.Blocks.Types;
+
+namespace mc_clone.src.WorldData
 {
     public partial class World
     {
@@ -92,7 +91,7 @@ namespace mc_clone
                 Vector3 currentRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
                 if (distanceTravelled >= maxDistance) return null;
                 Block hitBlock = GetBlock(gridCoords);
-                if (hitBlock != null)
+                if (hitBlock != null && hitBlock is not Air)
                 {
                     hit = true;
                     return (hitBlock,

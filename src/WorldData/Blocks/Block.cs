@@ -1,7 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using mc_clone.src.WorldData.Blocks.Types;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace mc_clone
+namespace mc_clone.src.WorldData.Blocks
 {
     public abstract class Block
     {
@@ -23,7 +27,26 @@ namespace mc_clone
                 new BlockFace(BlockFaceDirection.North),
             };
         }
-        //public abstract void Update();
+        public BlockCoordinates[] GetNeighborCoordinates(BlockCoordinates coords)
+        {
+            return this.faces.Select<BlockFace, BlockCoordinates>(face =>
+            {
+                Vector3 neighborOffset = face.direction.ToOffsetVector();
+                return new BlockCoordinates(
+                        coords.X + (int)neighborOffset.X,
+                        coords.Y + (int)neighborOffset.Y,
+                        coords.Z + (int)neighborOffset.Z);
+            }).ToArray();
+            //// Build each face individually
+            //foreach (BlockFace face in this.faces)
+            //{
+            //    Vector3 neighborOffset = face.direction.ToOffsetVector();
+            //    BlockCoordinates neighborCoords = new BlockCoordinates(
+            //            coords.X + (int)neighborOffset.X,
+            //            coords.Y + (int)neighborOffset.Y,
+            //            coords.Z + (int)neighborOffset.Z);
+            //}
+        }
     }
 
     public struct BlockFace

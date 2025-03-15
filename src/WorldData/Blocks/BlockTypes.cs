@@ -1,18 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace mc_clone
+namespace mc_clone.src.WorldData.Blocks
 {
     public enum BlockTypes
     {
+        Air,
         Stone,
         Dirt,
-        Grass
+        Grass,
     }
 
     public static class BlockTypesExtension

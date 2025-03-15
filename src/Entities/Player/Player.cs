@@ -2,14 +2,17 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace mc_clone
+using mc_clone.src.WorldData;
+using mc_clone.src.WorldData.Blocks;
+
+namespace mc_clone.src.Entities.Player
 {
     public class Player : PhysicsEntity
     {
         public Camera camera;
         private MouseState prevMouseState;
         private float accelForce = 0.5f;
-        private float jumpForce = 10f;
+        private float jumpForce = 9f;
 
         private Vector3 cameraOffset = new Vector3(0, 1.5f, 0);
 
@@ -17,10 +20,11 @@ namespace mc_clone
         {
             this.camera = camera;
 
-            this.position = new Vector3(22, 17, 12);
-            this.maxSpeed = 3;
-            this.dragVector = new Vector3(1.5f, 0f, 1.5f);
-            this.gravityVector = new Vector3(0, -0.5f, 0);
+            position = new Vector3(22, 17, 12);
+            maxSpeed = 3;
+            dragVector = new Vector3(1.5f, 0f, 1.5f);
+            //dragVector = new Vector3(1.5f, 1.5f, 1.5f);
+            gravityVector = new Vector3(0, -0.5f, 0);
         }
 
         public void Update(

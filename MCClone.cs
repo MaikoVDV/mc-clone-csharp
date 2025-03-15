@@ -1,8 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+
+using mc_clone.src.WorldData;
+using mc_clone.src.Entities.Player;
 
 namespace mc_clone
 {
@@ -15,7 +16,6 @@ namespace mc_clone
         private World world;
 
         private bool paused = false;
-
 
         public MCClone()
         {
@@ -103,6 +103,7 @@ namespace mc_clone
 
             base.Draw(gameTime);
         }
+
         public bool PointInsideViewport(Point p)
         {
             return p.X > 0 && p.X < GraphicsDevice.Viewport.Width

@@ -1,16 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 
-namespace mc_clone
+using mc_clone.src.WorldData.Blocks;
+
+namespace mc_clone.src.Entities.Player
 {
     public class AABBCollider
     {
         private Vector3 parentPos;
         private Vector3 scale;
         private Vector3 offset;
-        
+
         public Vector3 Position { get { return parentPos; } set { parentPos = value; } }
         private Vector3 Center { get { return parentPos + offset; } }
         public Vector3 MinValues { get { return Center - scale / 2; } }
@@ -24,7 +24,7 @@ namespace mc_clone
         }
         public void Translate(Vector3 movement)
         {
-            this.parentPos += movement;
+            parentPos += movement;
         }
         public override string ToString()
         {
@@ -34,12 +34,12 @@ namespace mc_clone
         // Does the AABB intersect a given other AABB
         public bool Intersects(AABBCollider other)
         {
-            return this.MinValues.X < other.MaxValues.X &&
-                this.MaxValues.X > other.MinValues.X &&
-                this.MinValues.Y < other.MaxValues.Y &&
-                this.MaxValues.Y > other.MinValues.Y &&
-                this.MinValues.Z < other.MaxValues.Z &&
-                this.MaxValues.Z > other.MinValues.Z;
+            return MinValues.X < other.MaxValues.X &&
+                MaxValues.X > other.MinValues.X &&
+                MinValues.Y < other.MaxValues.Y &&
+                MaxValues.Y > other.MinValues.Y &&
+                MinValues.Z < other.MaxValues.Z &&
+                MaxValues.Z > other.MinValues.Z;
         }
 
         // Does the AABB intersect with any of the blocks in the given array
@@ -53,13 +53,13 @@ namespace mc_clone
         }
 
         // Determines the overlap (aka collision depth) between this and another AABB.
-        public Nullable<Vector3> IntersectsDepth(AABBCollider other)
+        public Vector3? IntersectsDepth(AABBCollider other)
         {
             if (!Intersects(other)) return null;
             Vector3 overlap = new Vector3(
-                MathF.Min(this.MaxValues.X - other.MinValues.X, other.MaxValues.X - this.MinValues.X),
-                MathF.Min(this.MaxValues.Y - other.MinValues.Y, other.MaxValues.Y - this.MinValues.Y),
-                MathF.Min(this.MaxValues.Z - other.MinValues.Z, other.MaxValues.Z - this.MinValues.Z)
+                MathF.Min(MaxValues.X - other.MinValues.X, other.MaxValues.X - MinValues.X),
+                MathF.Min(MaxValues.Y - other.MinValues.Y, other.MaxValues.Y - MinValues.Y),
+                MathF.Min(MaxValues.Z - other.MinValues.Z, other.MaxValues.Z - MinValues.Z)
                 );
             if (overlap.X <= 0 || overlap.Y <= 0 || overlap.Z <= 0) return null;
 
@@ -67,7 +67,7 @@ namespace mc_clone
         }
 
         // Determines how much a given AABB should be translated to avoid clipping into the given blocks.
-        public Nullable<Vector3> IntersectsBlocksMTV(BlockCoordinates[] blocks)
+        public Vector3? IntersectsBlocksMTV(BlockCoordinates[] blocks)
         {
             float minOverlap = float.MaxValue;
             Vector3 minDepth = Vector3.One * float.MaxValue;
@@ -81,17 +81,17 @@ namespace mc_clone
                         if (depth.X < minOverlap)
                         {
                             minOverlap = depth.X;
-                            mtv = new Vector3(this.MinValues.X < coords.ToAABB().MinValues.X ? depth.X : -depth.X, 0, 0);
+                            mtv = new Vector3(MinValues.X < coords.ToAABB().MinValues.X ? depth.X : -depth.X, 0, 0);
                         }
                         if (depth.Y < minOverlap)
                         {
                             minOverlap = depth.Y;
-                            mtv = new Vector3(0, this.MinValues.Y < coords.ToAABB().MinValues.Y ? depth.Y : -depth.Y, 0);
+                            mtv = new Vector3(0, MinValues.Y < coords.ToAABB().MinValues.Y ? depth.Y : -depth.Y, 0);
                         }
                         if (depth.Z < minOverlap)
                         {
                             minOverlap = depth.Z;
-                            mtv = new Vector3(0, 0, this.MinValues.Z < coords.ToAABB().MinValues.Z ? depth.Z : -depth.Z);
+                            mtv = new Vector3(0, 0, MinValues.Z < coords.ToAABB().MinValues.Z ? depth.Z : -depth.Z);
                         }
                     }
                 }

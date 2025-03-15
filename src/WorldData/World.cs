@@ -1,10 +1,14 @@
-﻿using Microsoft.Xna.Framework;
+﻿using mc_clone.src.Entities.Player;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
-namespace mc_clone
+using mc_clone.src.WorldData.Blocks;
+using System.Diagnostics;
+using System.Linq;
+using mc_clone.src.WorldData.Blocks.Types;
+
+namespace mc_clone.src.WorldData
 {
     public partial class World
     {
@@ -70,7 +74,8 @@ namespace mc_clone
                 {
                     for (int x = minCoords.X; x < maxCoords.X; x++)
                     {
-                        if (GetBlock(x, y, z) is Block _)
+                        Block currentBlock = GetBlock(x, y, z);
+                        if (currentBlock != null && currentBlock is not Air)
                         {
                             output.Add(new BlockCoordinates(x, y, z));
                         }
@@ -91,5 +96,12 @@ namespace mc_clone
             return null;
         }
         public Block GetBlock(int x, int y, int z) { return GetBlock(new BlockCoordinates(x, y, z)); }
+        public Block[] GetBlocks(BlockCoordinates[] globalCoordsArray) 
+        {
+            return globalCoordsArray.Select(coords =>
+            {
+                return GetBlock(coords);
+            }).ToArray();
+        }
     }
 }

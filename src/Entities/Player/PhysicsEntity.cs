@@ -1,12 +1,10 @@
-﻿
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using static System.Reflection.Metadata.BlobBuilder;
 
-namespace mc_clone
+using mc_clone.src.WorldData;
+using mc_clone.src.WorldData.Blocks;
+
+namespace mc_clone.src.Entities.Player
 {
     public class PhysicsEntity
     {
@@ -52,6 +50,7 @@ namespace mc_clone
                 if (axis == Globals.AXIS_VECTOR_Y) onGround = collided && velocity.Y < 0;
                 if (!collided) position += velocity * axis;
                 else velocity *= axis.InvertUnitVector();
+                //position += velocity * axis;
             }
 
             storedAccel = Vector3.Zero;
@@ -65,7 +64,6 @@ namespace mc_clone
             BlockCoordinates[] testBlocks = world.GetBlocksInAABB(position + movement - new Vector3(3), position + movement + new Vector3(3));
 
             AABBCollider testAABB = new AABBCollider(position + movement, scale, new Vector3(0, 1, 0));
-            Vector3 finalMtv = Vector3.Zero;
 
             // First check final position and determine order of axis colission checking.
             if (testAABB.IntersectsBlocksMTV(testBlocks) is Vector3 mtv)

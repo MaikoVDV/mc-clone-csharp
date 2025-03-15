@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace mc_clone
+namespace mc_clone.src.Entities.Player
 {
     public class Camera
     {
@@ -12,14 +11,17 @@ namespace mc_clone
         public Vector3 Position { get { return position; } set { position = value; } }
         private Vector3 viewTarget;
         public Vector3 ViewTarget { get { return viewTarget; } }
-        public Vector3 ViewDirection {  
-            get {
+        public Vector3 ViewDirection
+        {
+            get
+            {
                 return new Vector3(
                     (float)(Math.Cos(yaw) * Math.Cos(pitch)),
                     (float)Math.Sin(pitch),
                     (float)(Math.Sin(yaw) * Math.Cos(pitch))
                 );
-        }}
+            }
+        }
         public Vector3 ViewDirectionFlat
         {
             get
@@ -56,7 +58,7 @@ namespace mc_clone
 
             // Set camera matrices
             view = Matrix.CreateLookAt(position, viewTarget, upVector);
-            projection = Matrix.CreatePerspectiveFieldOfView(80f * ((float)Math.PI / 180f), windowDimensions.width / (float)windowDimensions.height, 0.1f, 1000f);
+            projection = Matrix.CreatePerspectiveFieldOfView(80f * ((float)Math.PI / 180f), windowDimensions.width / windowDimensions.height, 0.1f, 1000f);
         }
 
         public void Update(
@@ -64,7 +66,8 @@ namespace mc_clone
             GraphicsDevice graphicsDevice,
             KeyboardState keyState,
             MouseState mouseState
-        ) {
+        )
+        {
 
 
             // Get mouse movement from center of window
@@ -82,8 +85,6 @@ namespace mc_clone
 
 
             viewTarget = position + Vector3.Normalize(ViewDirection);
-            if (keyState.IsKeyDown(Keys.C))
-                viewTarget = position + new Vector3(0, 0, -5);
 
             // Update the view matrix
             view = Matrix.CreateLookAt(position, viewTarget, upVector);
