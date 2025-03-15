@@ -3,7 +3,8 @@ using System;
 
 namespace mc_clone
 {
-    internal class BlockCoordinates
+    // A blocks GLOBAL coordinates - not coords inside a chunk.
+    public class BlockCoordinates
     {
         int x, y, z;
         public int X { get { return this.x; } }
@@ -26,12 +27,23 @@ namespace mc_clone
         {
             return $"BlockCoordinates ({x}, {y}, {z})";
         }
+        public BlockCoordinates(ChunkCoordinates chunkCoords, int x, int y, int z)
+        {
+            this.x = chunkCoords.X * Globals.CHUNK_SIZE_XZ + x;
+            this.y = chunkCoords.Y * Globals.CHUNK_SIZE_Y + y;
+            this.z = chunkCoords.Z * Globals.CHUNK_SIZE_XZ + z;
+        }
+
         public static bool operator ==(BlockCoordinates a, BlockCoordinates b)
         {
+            if (a is null && b is null) return true; // Both are null, therefore equal
+            if (a is null || b is null) return false; // One is null, but not both, therefore not equal.
             return a.x == b.x && a.y == b.y && a.z == b.z;
         }
         public static bool operator !=(BlockCoordinates a, BlockCoordinates b)
         {
+            if (a is null && b is null) return false; // Both are null, therefore equal
+            if (a is null || b is null) return true; // One is null, but not both, therefore not equal.
             return a.x != b.x || a.y != b.y || a.z != b.z;
         }
         public override bool Equals(object obj)

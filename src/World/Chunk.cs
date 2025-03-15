@@ -4,21 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace mc_clone
 {
-    internal class Chunk
+    public class Chunk
     {
         public Block[,,] blocks;
+        private ChunkCoordinates chunkCoords;
 
-        public Chunk(bool fill = true)
+        public Chunk(ChunkCoordinates coords, bool fill = true)
         {
+            this.chunkCoords = coords;
             blocks = new Block[Globals.CHUNK_SIZE_XZ, Globals.CHUNK_SIZE_Y, Globals.CHUNK_SIZE_XZ];
             if(fill) blocks = GenerateChunk();
         }
 
-        public (VertexPositionTexture[] vertices, int[] indices) BuildMesh()
+        public (VertexPositionTexture[] vertices, int[] indices) BuildMesh(World world)
         {
             List<VertexPositionTexture> chunkVertices = new();
             List<int> chunkIndices = new();
@@ -39,11 +40,25 @@ namespace mc_clone
                             BlockFace face = block.Faces[i];
 
                             Vector3 neighborOffset = face.direction.ToOffsetVector();
-                            Block neighbor = GetBlock(
-                                x + (int)neighborOffset.X, 
-                                y + (int)neighborOffset.Y, 
+                            LocalBlockCoordinates neighborCoords = LocalBlockCoordinates.Create(
+                                x + (int)neighborOffset.X,
+                                y + (int)neighborOffset.Y,
                                 z + (int)neighborOffset.Z);
-                            if (neighbor != null) continue;
+
+                            if (neighborCoords == null)
+                            {
+                                // Coords are outside of chunk bounds.
+                                Block globalNeighbor = world.GetBlock(new BlockCoordinates(chunkCoords, 
+                                    x + (int)neighborOffset.X,
+                                    y + (int)neighborOffset.Y,
+                                    z + (int)neighborOffset.Z));
+                                if (globalNeighbor != null) continue;
+                            } else
+                            {
+                                Block neighbor = GetBlock(neighborCoords);
+                                if (neighbor != null) continue;
+
+                            }
 
                             List<VertexPositionTexture> faceVertices = new();
                             for (int vIndex = 0;  vIndex < face.vertices.Length; vIndex++)
@@ -79,18 +94,14 @@ namespace mc_clone
             return (chunkVertices.ToArray(), chunkIndices.ToArray());
         }
 
-        public Block GetBlock(BlockCoordinates coords)
+        public Block GetBlock(LocalBlockCoordinates coords)
         {
             if (coords.X < 0 || coords.X >= blocks.GetLength(0)) return null;
             if (coords.Y < 0 || coords.Y >= blocks.GetLength(1)) return null;
             if (coords.Z < 0 || coords.Z >= blocks.GetLength(2)) return null;
             return blocks[coords.X, coords.Y, coords.Z];
         }
-        public Block GetBlock(int x, int y, int z)
-        {
-            return GetBlock(new BlockCoordinates(x, y, z));
-        }
-        public void SetBlock(BlockCoordinates coords, Block block)
+        public void SetBlock(LocalBlockCoordinates coords, Block block)
         {
             blocks[coords.X, coords.Y, coords.Z] = block;
         }
@@ -111,7 +122,7 @@ namespace mc_clone
                         BlockTypes type = BlockTypes.Stone;
                         if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockTypes.Dirt;
                         if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockTypes.Grass;
-                        blocks[x, y, z] = new Block(type);
+                        blocks[x, y, z] = new SolidBlock(type);
                     }
                 }
             }

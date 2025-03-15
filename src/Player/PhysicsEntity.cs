@@ -8,7 +8,7 @@ using static System.Reflection.Metadata.BlobBuilder;
 
 namespace mc_clone
 {
-    internal class PhysicsEntity
+    public class PhysicsEntity
     {
         protected float maxSpeed;
         protected World world;

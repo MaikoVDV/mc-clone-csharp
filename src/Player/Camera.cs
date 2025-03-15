@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace mc_clone
 {
-    internal class Camera
+    public class Camera
     {
         private Vector3 position;
         public Vector3 Position { get { return position; } set { position = value; } }

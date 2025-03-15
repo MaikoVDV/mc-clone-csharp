@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace mc_clone
 {
-    internal class Player : PhysicsEntity
+    public class Player : PhysicsEntity
     {
         public Camera camera;
         private MouseState prevMouseState;

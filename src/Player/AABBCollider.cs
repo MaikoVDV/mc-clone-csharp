@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace mc_clone
 {
-    internal class AABBCollider
+    public class AABBCollider
     {
         private Vector3 parentPos;
         private Vector3 scale;

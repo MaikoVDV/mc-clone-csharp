@@ -3,7 +3,7 @@ using System;
 
 namespace mc_clone
 {
-    internal class Block
+    public abstract class Block
     {
         private BlockTypes type;
         public BlockTypes Type { get { return type; } }
@@ -23,9 +23,10 @@ namespace mc_clone
                 new BlockFace(BlockFaceDirection.North),
             };
         }
+        //public abstract void Update();
     }
 
-    internal struct BlockFace
+    public struct BlockFace
     {
         public BlockFaceDirection direction;
         public Vector3[] vertices;
