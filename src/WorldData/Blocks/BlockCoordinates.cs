@@ -2,6 +2,7 @@
 using System;
 
 using mc_clone.src.Entities.Player;
+using System.Collections.Generic;
 
 namespace mc_clone.src.WorldData.Blocks;
 
@@ -53,6 +54,20 @@ public class BlockCoordinates
             new Vector3(x, y, z),
             new Vector3(1),
             new Vector3(0.5f, 0.5f, 0.5f));
+    }
+    public Dictionary<CardinalDirection, BlockCoordinates> GetNeighborCoordinates()
+    {
+        Dictionary<CardinalDirection, BlockCoordinates> result = new();
+        foreach (CardinalDirection direction in Enum.GetValues(typeof(CardinalDirection)))
+        {
+            Vector3 neighborOffset = direction.ToOffsetVector();
+            result.Add(direction,
+                new BlockCoordinates(
+                    x + (int)neighborOffset.X,
+                    y + (int)neighborOffset.Y,
+                    z + (int)neighborOffset.Z));
+        }
+        return result;
     }
 
     public static bool operator ==(BlockCoordinates a, BlockCoordinates b)

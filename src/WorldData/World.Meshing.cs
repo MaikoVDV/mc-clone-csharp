@@ -43,7 +43,7 @@ namespace mc_clone.src.WorldData
                     for (int x = 0; x < chunk.blocks.GetLength(0); x++)
                     {
                         Block block = chunk.blocks[x, y, z];
-                        if (block == null || block is Air) continue;
+                        if (block == null) continue;
 
                         // Build each face individually
                         for (int i = 0; i < block.Faces.Length; i++)
@@ -57,7 +57,7 @@ namespace mc_clone.src.WorldData
                                     z + (int)neighborOffset.Z);
                             Block neighbor = GetBlock(neighborCoords);
 
-                            if (!(neighbor is Air || neighbor == null)) continue;
+                            if (neighbor != null) continue;
 
                             List<VertexPositionTexture> faceVertices = new();
                             for (int vIndex = 0; vIndex < face.vertices.Length; vIndex++)

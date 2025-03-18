@@ -43,13 +43,13 @@ namespace mc_clone.src.WorldData
                     {
                         if (fill)
                         {
-                            BlockTypes type = BlockTypes.Stone;
-                            if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockTypes.Dirt;
-                            if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockTypes.Grass;
+                            BlockType type = BlockType.Stone;
+                            if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockType.Dirt;
+                            if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockType.Grass;
                             blocks[x, y, z] = new SolidBlock(type);
                         } else
                         {
-                            blocks[x, y, z] = new Air();
+                            blocks[x, y, z] = null;
                         }
                     }
                 }

@@ -63,7 +63,7 @@ namespace mc_clone.src.Entities.Player
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, BlockFaceDirection side, Vector3 point, BlockCoordinates coords))
+                if (hit is (Block block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
                 {
                     world.RemoveBlock(coords);
                 }
@@ -73,11 +73,11 @@ namespace mc_clone.src.Entities.Player
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, BlockFaceDirection side, Vector3 point, BlockCoordinates coords))
+                if (hit is (Block block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
                 {
 
                     BlockCoordinates newBlockLocation = coords + side.ToOffsetVector();
-                    world.AddBlock(newBlockLocation, BlockTypes.Water);
+                    world.AddBlock(newBlockLocation, BlockType.Water);
                 }
             }
 

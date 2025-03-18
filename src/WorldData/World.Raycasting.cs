@@ -10,7 +10,7 @@ namespace mc_clone.src.WorldData
     public partial class World
     {
         // DDA algorithm basedon https://lodev.org/cgtutor/raycasting.html
-        public Nullable<(Block block, BlockFaceDirection, Vector3 hitPoint, BlockCoordinates coords)> CastRay(Ray ray, float maxDistance = float.MaxValue)
+        public Nullable<(Block block, CardinalDirection, Vector3 hitPoint, BlockCoordinates coords)> CastRay(Ray ray, float maxDistance = float.MaxValue)
         {
             BlockCoordinates gridCoords = new BlockCoordinates(ray.Position);
 
@@ -31,7 +31,7 @@ namespace mc_clone.src.WorldData
 
             bool hit = false;
             char side;
-            BlockFaceDirection faceDir;
+            CardinalDirection faceDir;
 
             float distanceTravelled = 0;
 
@@ -40,13 +40,13 @@ namespace mc_clone.src.WorldData
             {
                 float prevDist = distanceTravelled;
                 index++;
-                if (GetBlock(gridCoords) != null && GetBlock(gridCoords) is not Air && index == 1)
+                if (GetBlock(gridCoords) != null && index == 1)
                 {
                     // Started DDA search inside a block.
                     Debug.WriteLine("Started DDA search from inside a block");
                     Vector3 startingRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
                     return (GetBlock(gridCoords),
-                        BlockFaceDirection.Top,
+                        CardinalDirection.Top,
                         startingRayPoint,
                         gridCoords);
                 }
@@ -80,13 +80,13 @@ namespace mc_clone.src.WorldData
                 switch (side)
                 {
                     case 'x':
-                        faceDir = stepDirection.X == 1 ? BlockFaceDirection.East : BlockFaceDirection.West;
+                        faceDir = stepDirection.X == 1 ? CardinalDirection.East : CardinalDirection.West;
                         break;
                     case 'y':
-                        faceDir = stepDirection.Y == 1 ? BlockFaceDirection.Bottom : BlockFaceDirection.Top;
+                        faceDir = stepDirection.Y == 1 ? CardinalDirection.Bottom : CardinalDirection.Top;
                         break;
                     case 'z':
-                        faceDir = stepDirection.Z == 1 ? BlockFaceDirection.South : BlockFaceDirection.North;
+                        faceDir = stepDirection.Z == 1 ? CardinalDirection.South : CardinalDirection.North;
                         break;
                     default: throw new Exception("wat");
                 }
@@ -95,7 +95,7 @@ namespace mc_clone.src.WorldData
                 Vector3 currentRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
                 if (distanceTravelled >= maxDistance) return null;
                 Block hitBlock = GetBlock(gridCoords);
-                if (hitBlock != null && hitBlock is not Air)
+                if (hitBlock != null)
                 {
                     hit = true;
                     return (hitBlock,

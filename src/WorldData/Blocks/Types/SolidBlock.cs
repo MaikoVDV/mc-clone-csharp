@@ -2,7 +2,7 @@
 {
     public class SolidBlock : Block
     {
-        public SolidBlock(BlockTypes type) : base(type)
+        public SolidBlock(BlockType type) : base(type)
         {
         }
     }

@@ -14,16 +14,13 @@ namespace mc_clone.src.WorldData
     {
         private Dictionary<ChunkCoordinates, Chunk> chunks = new();
         private Dictionary<ChunkCoordinates, (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
-        private List<ChunkCoordinates> chunksToUpdate = new();
-        private List<BlockCoordinates> blocksToUpdate = new();
-        private List<BlockCoordinates> futureBlocksToUpdate = new();
-        private BasicEffect chunkEffect;
+        private BasicEffect solidBlockEffect;
 
         public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
         {
 
             // Initialize BasicEffect
-            chunkEffect = new BasicEffect(graphicsDevice)
+            solidBlockEffect = new BasicEffect(graphicsDevice)
             {
                 Texture = textureAtlas,
                 TextureEnabled = true,
@@ -49,8 +46,8 @@ namespace mc_clone.src.WorldData
         {
             (Matrix view, Matrix projection) = camera.Matrices;
 
-            chunkEffect.View = view;
-            chunkEffect.Projection = projection;
+            solidBlockEffect.View = view;
+            solidBlockEffect.Projection = projection;
 
             foreach ((ChunkCoordinates coords, var mesh) in chunkMeshes)
             {
@@ -59,10 +56,10 @@ namespace mc_clone.src.WorldData
                 graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
                 graphicsDevice.Indices = mesh.indexBuffer;
 
-                chunkEffect.World = Matrix.CreateTranslation(coords.X * Globals.CHUNK_SIZE_XZ, coords.Y * Globals.CHUNK_SIZE_Y, coords.Z * Globals.CHUNK_SIZE_XZ);
+                solidBlockEffect.World = Matrix.CreateTranslation(coords.X * Globals.CHUNK_SIZE_XZ, coords.Y * Globals.CHUNK_SIZE_Y, coords.Z * Globals.CHUNK_SIZE_XZ);
 
                 // Apply effect and draw
-                foreach (EffectPass pass in chunkEffect.CurrentTechnique.Passes)
+                foreach (EffectPass pass in solidBlockEffect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
                     graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.indexBuffer.IndexCount / 3);
@@ -81,7 +78,7 @@ namespace mc_clone.src.WorldData
                     for (int x = minCoords.X; x < maxCoords.X; x++)
                     {
                         Block currentBlock = GetBlock(x, y, z);
-                        if (currentBlock != null && currentBlock is not Air)
+                        if (currentBlock != null)
                         {
                             output.Add(new BlockCoordinates(x, y, z));
                         }
@@ -108,6 +105,18 @@ namespace mc_clone.src.WorldData
             {
                 return GetBlock(coords);
             }).ToArray();
+        }
+        public bool TryGetBlock(BlockCoordinates globalCoords, out Block block)
+        {
+            (ChunkCoordinates chunkCoords, LocalBlockCoordinates localCoords) = LocalBlockCoordinates.FromGlobal(globalCoords);
+
+            if (chunks.TryGetValue(chunkCoords, out var chunk))
+            {
+                block = chunks[chunkCoords].GetBlock(localCoords);
+                return block != null;
+            }
+            block = null;
+            return false;
         }
     }
 }
