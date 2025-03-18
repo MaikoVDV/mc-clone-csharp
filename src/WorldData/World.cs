@@ -15,6 +15,8 @@ namespace mc_clone.src.WorldData
         private Dictionary<ChunkCoordinates, Chunk> chunks = new();
         private Dictionary<ChunkCoordinates, (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
         private List<ChunkCoordinates> chunksToUpdate = new();
+        private List<BlockCoordinates> blocksToUpdate = new();
+        private List<BlockCoordinates> futureBlocksToUpdate = new();
         private BasicEffect chunkEffect;
 
         public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
@@ -29,9 +31,12 @@ namespace mc_clone.src.WorldData
             };
             chunks.Add(ChunkCoordinates.Zero, new Chunk(ChunkCoordinates.Zero));
             chunks.Add(new ChunkCoordinates(1, 0, 0), new Chunk(new ChunkCoordinates(1, 0, 0)));
+            chunks.Add(new ChunkCoordinates(1, 1, 0), new Chunk(new ChunkCoordinates(1, 0, 0), false));
             chunks.Add(new ChunkCoordinates(0, 1, 0), new Chunk(new ChunkCoordinates(0, 1, 0)));
             chunks.Add(new ChunkCoordinates(0, 0, 1), new Chunk(new ChunkCoordinates(0, 0, 1)));
             chunks.Add(new ChunkCoordinates(0, 1, 1), new Chunk(new ChunkCoordinates(0, 1, 1), false));
+            chunks.Add(new ChunkCoordinates(1, 0, 1), new Chunk(new ChunkCoordinates(0, 1, 0)));
+            chunks.Add(new ChunkCoordinates(1, 1, 1), new Chunk(new ChunkCoordinates(0, 1, 0), false));
 
             foreach (KeyValuePair<ChunkCoordinates, Chunk> chunkEntry in chunks)
             {
@@ -49,6 +54,7 @@ namespace mc_clone.src.WorldData
 
             foreach ((ChunkCoordinates coords, var mesh) in chunkMeshes)
             {
+                if (mesh.vertexBuffer == null || mesh.indexBuffer == null) continue;
                 // Load faces
                 graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
                 graphicsDevice.Indices = mesh.indexBuffer;

@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 
 using mc_clone.src.WorldData;
 using mc_clone.src.WorldData.Blocks;
+using System.Diagnostics;
 
 namespace mc_clone.src.Entities.Player
 {
@@ -76,7 +77,7 @@ namespace mc_clone.src.Entities.Player
                 {
 
                     BlockCoordinates newBlockLocation = coords + side.ToOffsetVector();
-                    world.AddBlock(newBlockLocation, BlockTypes.Grass);
+                    world.AddBlock(newBlockLocation, BlockTypes.Water);
                 }
             }
 

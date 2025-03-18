@@ -13,7 +13,7 @@ namespace mc_clone.src.WorldData
         public Chunk(ChunkCoordinates coords, bool fill = true)
         {
             blocks = new Block[Globals.CHUNK_SIZE_XZ, Globals.CHUNK_SIZE_Y, Globals.CHUNK_SIZE_XZ];
-            if(fill) blocks = GenerateChunk();
+            blocks = GenerateChunk(fill);
         }
 
         public Block GetBlock(LocalBlockCoordinates coords)
@@ -28,7 +28,7 @@ namespace mc_clone.src.WorldData
             blocks[coords.X, coords.Y, coords.Z] = block;
         }
 
-        private Block[,,] GenerateChunk()
+        private Block[,,] GenerateChunk(bool fill)
         {
             // Initialize array
             Block[,,] blocks = new Block[Globals.CHUNK_SIZE_XZ, Globals.CHUNK_SIZE_Y, Globals.CHUNK_SIZE_XZ];
@@ -41,10 +41,16 @@ namespace mc_clone.src.WorldData
                 {
                     for (int x = 0; x < Globals.CHUNK_SIZE_XZ; x++)
                     {
-                        BlockTypes type = BlockTypes.Stone;
-                        if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockTypes.Dirt;
-                        if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockTypes.Grass;
-                        blocks[x, y, z] = new SolidBlock(type);
+                        if (fill)
+                        {
+                            BlockTypes type = BlockTypes.Stone;
+                            if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockTypes.Dirt;
+                            if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockTypes.Grass;
+                            blocks[x, y, z] = new SolidBlock(type);
+                        } else
+                        {
+                            blocks[x, y, z] = new Air();
+                        }
                     }
                 }
             }

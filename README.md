@@ -11,7 +11,8 @@ This project is currently only a simple analog to Minecraft Alpha, but that's no
   - [x] Handle collisions when performing physics move
   - [ ] Sweeping collision detection / raycasting to find the collision point more accurately.
 - [ ] Support more complex block behaviors (e.g. fluids, a redstone-like system)
-  - [ ] Store more complex data about blocks (powered, transparent, etc.)
-  - [ ] Implement fluids using Minecraft's fluid behavior rules (fluid graphics are a challenge for later)
+  - [x] Store more complex data about blocks (powered, transparent, etc.)
+  - [x] Implement fluids using Minecraft's fluid behavior rules (fluid graphics are a challenge for later)
   - [ ] Implement basic redstone circuits: levers, wire and torches
+  - [ ] Build more streamlined block and chunk update logic
 - [ ] Lighting

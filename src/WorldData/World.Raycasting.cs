@@ -40,11 +40,15 @@ namespace mc_clone.src.WorldData
             {
                 float prevDist = distanceTravelled;
                 index++;
-                if (GetBlock(gridCoords) != null && index == 0)
+                if (GetBlock(gridCoords) != null && GetBlock(gridCoords) is not Air && index == 1)
                 {
                     // Started DDA search inside a block.
                     Debug.WriteLine("Started DDA search from inside a block");
-                    return null;
+                    Vector3 startingRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
+                    return (GetBlock(gridCoords),
+                        BlockFaceDirection.Top,
+                        startingRayPoint,
+                        gridCoords);
                 }
 
                 if (sideDist.Min() == sideDist.X)
@@ -70,7 +74,7 @@ namespace mc_clone.src.WorldData
                 }
                 else
                 {
-                    throw new Exception("Error in DDA: Found now lowest value for side dists.");
+                    throw new Exception("Error in DDA: Found no lowest value for side dists.");
                 }
 
                 switch (side)

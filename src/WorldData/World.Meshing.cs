@@ -14,7 +14,11 @@ namespace mc_clone.src.WorldData
         public void RegenerateChunkMesh(GraphicsDevice graphicsDevice, ChunkCoordinates coords)
         {
             (VertexPositionTexture[] vertices, int[] indices) = BuildMesh(coords);
-            if (vertices.Length == 0 || indices.Length == 0) return;
+            if (vertices.Length == 0 || indices.Length == 0)
+            {
+                chunkMeshes[coords] = (null, null);
+                return;
+            }
             VertexBuffer vb = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
             IndexBuffer ib = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
             vb.SetData(vertices);

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace mc_clone.src.WorldData.Blocks
@@ -27,25 +28,30 @@ namespace mc_clone.src.WorldData.Blocks
                 new BlockFace(BlockFaceDirection.North),
             };
         }
-        public BlockCoordinates[] GetNeighborCoordinates(BlockCoordinates coords)
+        public virtual void Update(World world, BlockCoordinates coords) { }
+
+        public Dictionary<BlockFaceDirection, BlockCoordinates> GetNeighborCoordinates(BlockCoordinates coords)
         {
-            return this.faces.Select<BlockFace, BlockCoordinates>(face =>
+            Dictionary<BlockFaceDirection, BlockCoordinates> result = new();
+            foreach (var face in faces)
             {
                 Vector3 neighborOffset = face.direction.ToOffsetVector();
-                return new BlockCoordinates(
+                result.Add(face.direction, 
+                    new BlockCoordinates(
                         coords.X + (int)neighborOffset.X,
                         coords.Y + (int)neighborOffset.Y,
-                        coords.Z + (int)neighborOffset.Z);
-            }).ToArray();
-            //// Build each face individually
-            //foreach (BlockFace face in this.faces)
-            //{
-            //    Vector3 neighborOffset = face.direction.ToOffsetVector();
-            //    BlockCoordinates neighborCoords = new BlockCoordinates(
-            //            coords.X + (int)neighborOffset.X,
-            //            coords.Y + (int)neighborOffset.Y,
-            //            coords.Z + (int)neighborOffset.Z);
-            //}
+                        coords.Z + (int)neighborOffset.Z));
+            }
+            return result;
+        }
+        public Dictionary<BlockFaceDirection, Block> GetNeighborBlocks(World world, BlockCoordinates coords)
+        {
+            Dictionary<BlockFaceDirection, Block> result = new();
+            foreach (var neighbor in GetNeighborCoordinates(coords))
+            {
+                result.Add(neighbor.Key, world.GetBlock(neighbor.Value));
+            }
+            return result;
         }
     }
 
