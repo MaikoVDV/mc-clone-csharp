@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using mc_clone.src.WorldData.Blocks;
 using System.Diagnostics;
 using System.Linq;
-using mc_clone.src.WorldData.Blocks.Types;
+using mc_clone.src.WorldData.Blocks.Behaviors;
 
 namespace mc_clone.src.WorldData
 {
@@ -14,11 +14,10 @@ namespace mc_clone.src.WorldData
     {
         private Dictionary<ChunkCoordinates, Chunk> chunks = new();
         private Dictionary<ChunkCoordinates, (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
-        private BasicEffect solidBlockEffect;
+        private readonly BasicEffect solidBlockEffect;
 
         public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
         {
-
             // Initialize BasicEffect
             solidBlockEffect = new BasicEffect(graphicsDevice)
             {
@@ -77,8 +76,8 @@ namespace mc_clone.src.WorldData
                 {
                     for (int x = minCoords.X; x < maxCoords.X; x++)
                     {
-                        Block currentBlock = GetBlock(x, y, z);
-                        if (currentBlock != null)
+                        Block currentBlock = GetBlock(x, y, z).Block;
+                        if (currentBlock != null && currentBlock?.Type != BlockType.Water)
                         {
                             output.Add(new BlockCoordinates(x, y, z));
                         }
@@ -88,7 +87,7 @@ namespace mc_clone.src.WorldData
             return output.ToArray();
         }
 
-        public Block GetBlock(BlockCoordinates globalCoords)
+        public BlockQuery GetBlock(BlockCoordinates globalCoords)
         {
             (ChunkCoordinates chunkCoords, LocalBlockCoordinates localCoords) = LocalBlockCoordinates.FromGlobal(globalCoords);
 
@@ -96,27 +95,32 @@ namespace mc_clone.src.WorldData
             {
                 return chunks[chunkCoords].GetBlock(localCoords);
             }
-            return null;
+            //Debug.WriteLine("Null");
+            return new BlockQuery(null, null);
         }
-        public Block GetBlock(int x, int y, int z) { return GetBlock(new BlockCoordinates(x, y, z)); }
-        public Block[] GetBlocks(BlockCoordinates[] globalCoordsArray) 
+
+        public BlockQuery GetBlock(int x, int y, int z) { return GetBlock(new BlockCoordinates(x, y, z)); }
+
+        public BlockQuery[] GetBlocks(BlockCoordinates[] globalCoordsArray) 
         {
             return globalCoordsArray.Select(coords =>
             {
                 return GetBlock(coords);
             }).ToArray();
         }
-        public bool TryGetBlock(BlockCoordinates globalCoords, out Block block)
-        {
-            (ChunkCoordinates chunkCoords, LocalBlockCoordinates localCoords) = LocalBlockCoordinates.FromGlobal(globalCoords);
 
-            if (chunks.TryGetValue(chunkCoords, out var chunk))
-            {
-                block = chunks[chunkCoords].GetBlock(localCoords);
-                return block != null;
-            }
-            block = null;
-            return false;
-        }
+        //public bool TryGetBlock(BlockCoordinates globalCoords, out BlockQuery queryResult)
+        //{
+        //    (ChunkCoordinates chunkCoords, LocalBlockCoordinates localCoords) = LocalBlockCoordinates.FromGlobal(globalCoords);
+
+        //    if (chunks.TryGetValue(chunkCoords, out var chunk))
+        //    {
+        //        queryResult = chunks[chunkCoords].GetBlock(localCoords);
+        //        Debug.WriteLine(queryResult == null);
+        //        return queryResult != null;
+        //    }
+        //    queryResult = null;
+        //    return false;
+        //}
     }
 }

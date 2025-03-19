@@ -5,7 +5,7 @@ using System;
 
 using mc_clone.src.WorldData.Blocks;
 using System.Diagnostics;
-using mc_clone.src.WorldData.Blocks.Types;
+using mc_clone.src.WorldData.Blocks.Behaviors;
 
 namespace mc_clone.src.WorldData
 {
@@ -55,9 +55,9 @@ namespace mc_clone.src.WorldData
                                     x + (int)neighborOffset.X,
                                     y + (int)neighborOffset.Y,
                                     z + (int)neighborOffset.Z);
-                            Block neighbor = GetBlock(neighborCoords);
+                            BlockQuery neighbor = GetBlock(neighborCoords);
 
-                            if (neighbor != null) continue;
+                            if (neighbor.Block != null) continue;
 
                             List<VertexPositionTexture> faceVertices = new();
                             for (int vIndex = 0; vIndex < face.vertices.Length; vIndex++)

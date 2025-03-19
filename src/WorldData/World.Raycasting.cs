@@ -3,14 +3,14 @@ using System;
 using System.Diagnostics;
 
 using mc_clone.src.WorldData.Blocks;
-using mc_clone.src.WorldData.Blocks.Types;
+using mc_clone.src.WorldData.Blocks.Behaviors;
 
 namespace mc_clone.src.WorldData
 {
     public partial class World
     {
         // DDA algorithm basedon https://lodev.org/cgtutor/raycasting.html
-        public Nullable<(Block block, CardinalDirection, Vector3 hitPoint, BlockCoordinates coords)> CastRay(Ray ray, float maxDistance = float.MaxValue)
+        public Nullable<(BlockQuery blockQuery, CardinalDirection, Vector3 hitPoint, BlockCoordinates coords)> CastRay(Ray ray, float maxDistance = float.MaxValue)
         {
             BlockCoordinates gridCoords = new BlockCoordinates(ray.Position);
 
@@ -40,10 +40,9 @@ namespace mc_clone.src.WorldData
             {
                 float prevDist = distanceTravelled;
                 index++;
-                if (GetBlock(gridCoords) != null && index == 1)
+                if (GetBlock(gridCoords).Block != null && index == 1)
                 {
                     // Started DDA search inside a block.
-                    Debug.WriteLine("Started DDA search from inside a block");
                     Vector3 startingRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
                     return (GetBlock(gridCoords),
                         CardinalDirection.Top,
@@ -94,8 +93,8 @@ namespace mc_clone.src.WorldData
 
                 Vector3 currentRayPoint = ray.Position + (sideDist.Min() - deltaDist.Min()) * ray.Direction;
                 if (distanceTravelled >= maxDistance) return null;
-                Block hitBlock = GetBlock(gridCoords);
-                if (hitBlock != null)
+                BlockQuery hitBlock = GetBlock(gridCoords);
+                if (hitBlock.Block != null)
                 {
                     hit = true;
                     return (hitBlock,

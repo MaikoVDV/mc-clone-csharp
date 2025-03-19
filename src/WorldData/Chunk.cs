@@ -2,13 +2,13 @@
 using System;
 
 using mc_clone.src.WorldData.Blocks;
-using mc_clone.src.WorldData.Blocks.Types;
 
 namespace mc_clone.src.WorldData
 {
     public class Chunk
     {
         public Block[,,] blocks;
+        public BlockDataStore blockDataStore = new();
 
         public Chunk(ChunkCoordinates coords, bool fill = true)
         {
@@ -16,16 +16,17 @@ namespace mc_clone.src.WorldData
             blocks = GenerateChunk(fill);
         }
 
-        public Block GetBlock(LocalBlockCoordinates coords)
+        public BlockQuery GetBlock(LocalBlockCoordinates coords)
         {
-            if (coords.X < 0 || coords.X >= blocks.GetLength(0)) return null;
-            if (coords.Y < 0 || coords.Y >= blocks.GetLength(1)) return null;
-            if (coords.Z < 0 || coords.Z >= blocks.GetLength(2)) return null;
-            return blocks[coords.X, coords.Y, coords.Z];
+            if (coords.X < 0 || coords.X >= blocks.GetLength(0)) return new BlockQuery(null, null);
+            if (coords.Y < 0 || coords.Y >= blocks.GetLength(1)) return new BlockQuery(null, null);
+            if (coords.Z < 0 || coords.Z >= blocks.GetLength(2)) return new BlockQuery(null, null);
+            return new BlockQuery(blocks[coords.X, coords.Y, coords.Z], blockDataStore[coords]);
         }
-        public void SetBlock(LocalBlockCoordinates coords, Block block)
+        public void SetBlock(LocalBlockCoordinates coords, Block block, BlockData data = null)
         {
             blocks[coords.X, coords.Y, coords.Z] = block;
+            blockDataStore[coords] = data;
         }
 
         private Block[,,] GenerateChunk(bool fill)
@@ -46,7 +47,7 @@ namespace mc_clone.src.WorldData
                             BlockType type = BlockType.Stone;
                             if (y > Globals.CHUNK_SIZE_Y - 3) type = BlockType.Dirt;
                             if (y == Globals.CHUNK_SIZE_Y - 1) type = BlockType.Grass;
-                            blocks[x, y, z] = new SolidBlock(type);
+                            blocks[x, y, z] = new Block(type);
                         } else
                         {
                             blocks[x, y, z] = null;

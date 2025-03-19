@@ -1,4 +1,4 @@
-﻿using mc_clone.src.WorldData.Blocks.Types;
+﻿using mc_clone.src.WorldData.Blocks.Behaviors;
 using Microsoft.Xna.Framework;
 using System;
 
@@ -16,7 +16,7 @@ namespace mc_clone.src.WorldData.Blocks
     {
         public static Vector2 ToUV(this BlockType type, CardinalDirection direction)
         {
-            (int x, int y) textureCoords = type switch
+            (int x, int y) = type switch
             {
                 BlockType.Stone => (1, 0),
                 BlockType.Dirt => (2, 0),
@@ -30,18 +30,16 @@ namespace mc_clone.src.WorldData.Blocks
                 _ => throw new NotImplementedException($"Tried getting texture coords for an unknown blocktype {type.ToString()}")
             };
             return new Vector2(
-                (float)textureCoords.x * Globals.TEXTURE_STEP_FACTOR.X,
-                (float)textureCoords.y * Globals.TEXTURE_STEP_FACTOR.Y);
+                (float)x * Globals.TEXTURE_STEP_FACTOR.X,
+                (float)y * Globals.TEXTURE_STEP_FACTOR.Y);
         }
-        public static Block ToNewBlock(this BlockType type)
+
+        public static bool IsLiquid(this BlockType blockType)
         {
-            return type switch
+            return blockType switch
             {
-                BlockType.Dirt or
-                BlockType.Stone or
-                BlockType.Grass => new SolidBlock(type),
-                BlockType.Water => new Liquid(type, Liquid.DEFAULT_WATER_SPREAD),
-                _ => throw new NotImplementedException($"Tried creating new block with an unknown blocktype {type.ToString()}")
+                BlockType.Water => true,
+                _ => false,
             };
         }
     }

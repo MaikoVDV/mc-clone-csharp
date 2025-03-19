@@ -1,4 +1,4 @@
-﻿using mc_clone.src.WorldData.Blocks.Types;
+﻿using mc_clone.src.WorldData.Blocks.Behaviors;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -8,11 +8,11 @@ using System.Linq;
 
 namespace mc_clone.src.WorldData.Blocks
 {
-    public abstract class Block
+    public class Block
     {
         private BlockType type;
         public BlockType Type { get { return type; } }
-        private BlockFace[] faces;
+        private readonly BlockFace[] faces;
         public BlockFace[] Faces { get { return faces; } }
 
         public Block(BlockType type)
@@ -27,19 +27,6 @@ namespace mc_clone.src.WorldData.Blocks
                 new BlockFace(CardinalDirection.South),
                 new BlockFace(CardinalDirection.North),
             };
-        }
-        public virtual void SelfChangedUpdateHandler(World world, BlockCoordinates coords) { } // Triggered when the block's state is changed or when the block is placed.
-        //public virtual void NeighborPlacedUpdateHandler(World world, BlockCoordinates coords) { } // Triggered when a neighboring block's type changes.
-        public virtual void NeighborChangedUpdateHandler(World world, BlockCoordinates coords) { } // Triggered when a neighboring block's state changes.
-
-        public Dictionary<CardinalDirection, Block> GetNeighborBlocks(World world, BlockCoordinates coords)
-        {
-            Dictionary<CardinalDirection, Block> result = new();
-            foreach (var neighbor in coords.GetNeighborCoordinates())
-            {
-                result.Add(neighbor.Key, world.GetBlock(neighbor.Value));
-            }
-            return result;
         }
     }
 

@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework.Input;
 
 using mc_clone.src.WorldData;
 using mc_clone.src.WorldData.Blocks;
-using System.Diagnostics;
 
 namespace mc_clone.src.Entities.Player
 {
@@ -14,6 +13,7 @@ namespace mc_clone.src.Entities.Player
         private MouseState prevMouseState;
         private float accelForce = 0.5f;
         private float jumpForce = 9f;
+        //private float jumpForce = 1f;
 
         private Vector3 cameraOffset = new Vector3(0, 1.5f, 0);
 
@@ -49,6 +49,8 @@ namespace mc_clone.src.Entities.Player
                 ApplyForce(right * accelForce);
             if (keyState.IsKeyDown(Keys.Space) && OnGround)
                 ApplyForce(Vector3.Up * jumpForce);
+            //if (keyState.IsKeyDown(Keys.Space))
+            //    ApplyForce(Vector3.Up * jumpForce);
             if (keyState.IsKeyDown(Keys.LeftShift))
                 ApplyForce(-Vector3.Up * accelForce);
 
@@ -63,7 +65,7 @@ namespace mc_clone.src.Entities.Player
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
+                if (hit is (BlockQuery block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
                 {
                     world.RemoveBlock(coords);
                 }
@@ -73,7 +75,7 @@ namespace mc_clone.src.Entities.Player
                 Ray pointer = new Ray(camera.Position, camera.ViewDirection);
                 var hit = world.CastRay(pointer);
 
-                if (hit is (Block block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
+                if (hit is (BlockQuery block, CardinalDirection side, Vector3 point, BlockCoordinates coords))
                 {
 
                     BlockCoordinates newBlockLocation = coords + side.ToOffsetVector();

@@ -70,6 +70,16 @@ public class BlockCoordinates
         return result;
     }
 
+    public Dictionary<CardinalDirection, BlockQuery> GetNeighborBlocks(World world)
+    {
+        Dictionary<CardinalDirection, BlockQuery> result = new();
+        foreach (var neighbor in GetNeighborCoordinates())
+        {
+            result.Add(neighbor.Key, world.GetBlock(neighbor.Value));
+        }
+        return result;
+    }
+
     public static bool operator ==(BlockCoordinates a, BlockCoordinates b)
     {
         if (a is null && b is null) return true; // Both are null, therefore equal
