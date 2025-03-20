@@ -13,18 +13,12 @@ namespace mc_clone.src.WorldData
     public partial class World
     {
         private Dictionary<ChunkCoordinates, Chunk> chunks = new();
-        private Dictionary<ChunkCoordinates, (VertexBuffer vertexBuffer, IndexBuffer indexBuffer)> chunkMeshes = new();
-        private readonly BasicEffect solidBlockEffect;
+        private Texture2D textureAtlas;
 
         public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
         {
-            // Initialize BasicEffect
-            solidBlockEffect = new BasicEffect(graphicsDevice)
-            {
-                Texture = textureAtlas,
-                TextureEnabled = true,
-                LightingEnabled = false
-            };
+            this.textureAtlas = textureAtlas;
+
             chunks.Add(ChunkCoordinates.Zero, new Chunk(ChunkCoordinates.Zero));
             chunks.Add(new ChunkCoordinates(1, 0, 0), new Chunk(new ChunkCoordinates(1, 0, 0)));
             chunks.Add(new ChunkCoordinates(1, 1, 0), new Chunk(new ChunkCoordinates(1, 0, 0), false));
@@ -36,7 +30,7 @@ namespace mc_clone.src.WorldData
 
             foreach (KeyValuePair<ChunkCoordinates, Chunk> chunkEntry in chunks)
             {
-                RegenerateChunkMesh(graphicsDevice, chunkEntry.Key);
+                RegenerateChunkMeshes(graphicsDevice, chunkEntry.Key);
             }
         }
 
@@ -45,23 +39,45 @@ namespace mc_clone.src.WorldData
         {
             (Matrix view, Matrix projection) = camera.Matrices;
 
-            solidBlockEffect.View = view;
-            solidBlockEffect.Projection = projection;
-
-            foreach ((ChunkCoordinates coords, var mesh) in chunkMeshes)
+            foreach (var chunkMeshList in chunkMeshes)
             {
-                if (mesh.vertexBuffer == null || mesh.indexBuffer == null) continue;
-                // Load faces
-                graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
-                graphicsDevice.Indices = mesh.indexBuffer;
 
-                solidBlockEffect.World = Matrix.CreateTranslation(coords.X * Globals.CHUNK_SIZE_XZ, coords.Y * Globals.CHUNK_SIZE_Y, coords.Z * Globals.CHUNK_SIZE_XZ);
+                ChunkCoordinates coords = chunkMeshList.Key;
+                Matrix world = Matrix.CreateTranslation(
+                                coords.X * Globals.CHUNK_SIZE_XZ,
+                                coords.Y * Globals.CHUNK_SIZE_Y,
+                                coords.Z * Globals.CHUNK_SIZE_XZ);
 
-                // Apply effect and draw
-                foreach (EffectPass pass in solidBlockEffect.CurrentTechnique.Passes)
+                foreach (var mesh in chunkMeshList.Value)
                 {
-                    pass.Apply();
-                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.indexBuffer.IndexCount / 3);
+                    if (mesh.vertexBuffer == null || mesh.indexBuffer == null) continue;
+                    Effect currentEffect = mesh.effect;
+
+                    currentEffect.Parameters["View"].SetValue(view);
+                    currentEffect.Parameters["Projection"].SetValue(projection);
+                    currentEffect.Parameters["World"].SetValue(world);
+
+                    //Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(mesh.ParentBone.Transform * world));
+                    //Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(world));
+                    //currentEffect.Parameters["WorldInverseTranspose"].SetValue(worldInverseTransposeMatrix);
+
+                    //currentEffect.Parameters["DiffuseLightDirection"].SetValue(new Vector3(0.7f, 0.5f, 0.2f));
+                    //currentEffect.Parameters["DiffuseColor"].SetValue(Color.White.ToVector4());
+                    //currentEffect.Parameters["DiffuseIntensity"].SetValue(1.0f);
+
+
+
+                    // Load faces
+                    graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
+                    graphicsDevice.Indices = mesh.indexBuffer;
+
+
+                    // Apply effect and draw
+                    foreach (EffectPass pass in currentEffect.CurrentTechnique.Passes)
+                    {
+                        pass.Apply();
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.indexBuffer.IndexCount / 3);
+                    }
                 }
             }
         }

@@ -4,6 +4,8 @@ using System;
 
 namespace mc_clone.src.WorldData.Blocks
 {
+    public delegate bool BlockTypeFilterClause(BlockType type);
+
     public enum BlockType
     {
         Stone,

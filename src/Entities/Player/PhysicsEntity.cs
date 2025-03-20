@@ -36,7 +36,7 @@ namespace mc_clone.src.Entities.Player
             storedAccel += -dragVector * velocity;
 
             // Add gravity
-            storedAccel += gravityVector;
+            //storedAccel += gravityVector;
 
             // Adjust desired acceleration to not exceed max futureSpeed, then apply.
             float futureSpeed = (velocity + storedAccel * deltaTime).Length();
@@ -48,9 +48,9 @@ namespace mc_clone.src.Entities.Player
             {
                 MoveAxis(velocity, axis, out bool collided);
                 if (axis == Globals.AXIS_VECTOR_Y) onGround = collided && velocity.Y < 0;
-                if (!collided) position += velocity * axis;
-                else velocity *= axis.InvertUnitVector();
-                //position += velocity * axis;
+                //if (!collided) position += velocity * axis;
+                //else velocity *= axis.InvertUnitVector();
+                position += velocity * axis;
             }
 
             storedAccel = Vector3.Zero;

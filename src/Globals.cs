@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace mc_clone
 {
@@ -12,5 +13,8 @@ namespace mc_clone
         public static readonly short TEXTURE_WIDTH = 16; // Width of the texture of a single block face (in pixels)
 
         public static Vector2 TEXTURE_STEP_FACTOR;
+
+        public static Effect basicEffect;
+        public static Effect waterEffect;
     }
 }

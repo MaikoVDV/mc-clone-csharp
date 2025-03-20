@@ -1,22 +1,16 @@
-﻿using mc_clone.src.WorldData.Blocks.Behaviors;
-using System;
+﻿using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
+
+using mc_clone.src.WorldData.Blocks.Behaviors;
 
 namespace mc_clone.src.WorldData.Blocks
 {
-    public delegate void BlockUpdateAction(World world, BlockCoordinates coords);
-
     public class BlockProperties
     {
         public bool isSolid = true;
         public IBlockBehavior behavior;
         public BlockData dataObject;
-
-        public BlockProperties(bool isSolid = true, IBlockBehavior behavior = null)
-        {
-            this.isSolid = isSolid;
-            this.behavior = behavior;
-        }
+        public Effect effect = Globals.basicEffect;
     }
 
     public static class BlockPropertyRegistry
@@ -27,7 +21,12 @@ namespace mc_clone.src.WorldData.Blocks
             { BlockType.Grass, new BlockProperties { } },
             { BlockType.Dirt,  new BlockProperties { } },
             // There might be a problem that multiple blocks use the same BlockData object here?
-            { BlockType.Water, new BlockProperties { behavior = new LiquidBehavior(), dataObject = new LiquidData() } },
+            { BlockType.Water, new BlockProperties {
+                isSolid = false,
+                behavior = new LiquidBehavior(),
+                dataObject = new LiquidData(),
+                effect = Globals.waterEffect,
+            } },
         };
 
         public static BlockProperties Get(BlockQuery query)
@@ -37,6 +36,11 @@ namespace mc_clone.src.WorldData.Blocks
         public static BlockProperties Get(Block block)
         {
             return Properties[block.Type];
+        }
+
+        public static BlockProperties Get(BlockType type)
+        {
+            return Properties[type];
         }
     }
 }

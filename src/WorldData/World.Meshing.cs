@@ -5,31 +5,73 @@ using System;
 
 using mc_clone.src.WorldData.Blocks;
 using System.Diagnostics;
-using mc_clone.src.WorldData.Blocks.Behaviors;
+using System.Linq;
 
 namespace mc_clone.src.WorldData
 {
     public partial class World
     {
-        public void RegenerateChunkMesh(GraphicsDevice graphicsDevice, ChunkCoordinates coords)
+        private Dictionary<ChunkCoordinates, List<MeshBundle>> chunkMeshes = new();
+
+        public void RegenerateChunkMeshes(GraphicsDevice graphicsDevice, ChunkCoordinates coords)
         {
-            (VertexPositionTexture[] vertices, int[] indices) = BuildMesh(coords);
-            if (vertices.Length == 0 || indices.Length == 0)
+            var meshes = BuildChunkMeshes(coords);
+            if (chunkMeshes.TryGetValue(coords, out var meshList))
             {
-                chunkMeshes[coords] = (null, null);
-                return;
+                meshList.Clear();
+            } else
+            {
+                chunkMeshes.Add(coords, new List<MeshBundle>());
             }
-            VertexBuffer vb = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), vertices.Length, BufferUsage.WriteOnly);
-            IndexBuffer ib = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, indices.Length, BufferUsage.WriteOnly);
-            vb.SetData(vertices);
-            ib.SetData(indices);
-            chunkMeshes[coords] = (vb, ib);
+            foreach (var mesh in meshes)
+            {
+                if (mesh.vertices.Length == 0 || mesh.indices.Length == 0) continue;
+
+                VertexBuffer vb = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), mesh.vertices.Length, BufferUsage.WriteOnly);
+                IndexBuffer ib = new IndexBuffer(graphicsDevice, IndexElementSize.ThirtyTwoBits, mesh.indices.Length, BufferUsage.WriteOnly);
+
+                vb.SetData(mesh.vertices);
+                ib.SetData(mesh.indices);
+
+                MeshBundle bundle = new MeshBundle
+                {
+                    vertexBuffer = vb,
+                    indexBuffer = ib,
+                    effect = mesh.effect,
+                };
+
+                chunkMeshes[coords].Add(bundle);
+            }
         }
 
-        public (VertexPositionTexture[] vertices, int[] indices) BuildMesh(ChunkCoordinates chunkCoords)
+        public List<(VertexPositionTexture[] vertices, int[] indices, Effect effect)> BuildChunkMeshes(ChunkCoordinates chunkCoords)
         {
-            Chunk chunk = null;
-            chunks.TryGetValue(chunkCoords, out chunk);
+            chunks.TryGetValue(chunkCoords, out Chunk chunk);
+            if (chunk == null) return new List<(VertexPositionTexture[] vertices, int[] indices, Effect effect)>();
+
+            List<(VertexPositionTexture[], int[], Effect)> result = new();
+
+            {
+                var (vertices, indices) = BuildMeshByBlockProperty(chunkCoords, (BlockType type) =>
+                {
+                    return BlockPropertyRegistry.Get(type).isSolid;
+                });
+                result.Add((vertices, indices, Globals.basicEffect));
+            }
+            {
+                var meshData = BuildMeshByBlockProperty(chunkCoords, (BlockType type) =>
+                {
+                    return type == BlockType.Water;
+                });
+                result.Add((meshData.vertices, meshData.indices, Globals.waterEffect));
+            }
+
+            return result;
+        }
+
+        public (VertexPositionTexture[] vertices, int[] indices) BuildMeshByBlockProperty(ChunkCoordinates chunkCoords, BlockTypeFilterClause filterClause)
+        {
+            chunks.TryGetValue(chunkCoords, out Chunk chunk);
             if (chunk == null) return (Array.Empty<VertexPositionTexture>(), Array.Empty<int>());
 
             List<VertexPositionTexture> chunkVertices = new();
@@ -43,7 +85,7 @@ namespace mc_clone.src.WorldData
                     for (int x = 0; x < chunk.blocks.GetLength(0); x++)
                     {
                         Block block = chunk.blocks[x, y, z];
-                        if (block == null) continue;
+                        if (block == null || !filterClause(block.Type)) continue;
 
                         // Build each face individually
                         for (int i = 0; i < block.Faces.Length; i++)
@@ -57,7 +99,7 @@ namespace mc_clone.src.WorldData
                                     z + (int)neighborOffset.Z);
                             BlockQuery neighbor = GetBlock(neighborCoords);
 
-                            if (neighbor.Block != null) continue;
+                            if (neighbor.Block != null && filterClause(neighbor.Block.Type)) continue;
 
                             List<VertexPositionTexture> faceVertices = new();
                             for (int vIndex = 0; vIndex < face.vertices.Length; vIndex++)
@@ -92,5 +134,11 @@ namespace mc_clone.src.WorldData
             }
             return (chunkVertices.ToArray(), chunkIndices.ToArray());
         }
+    }
+    public struct MeshBundle
+    {
+        public VertexBuffer vertexBuffer;
+        public IndexBuffer indexBuffer;
+        public Effect effect;
     }
 }

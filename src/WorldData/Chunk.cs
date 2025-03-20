@@ -29,7 +29,7 @@ namespace mc_clone.src.WorldData
             blockDataStore[coords] = data;
         }
 
-        private Block[,,] GenerateChunk(bool fill)
+        private static Block[,,] GenerateChunk(bool fill)
         {
             // Initialize array
             Block[,,] blocks = new Block[Globals.CHUNK_SIZE_XZ, Globals.CHUNK_SIZE_Y, Globals.CHUNK_SIZE_XZ];

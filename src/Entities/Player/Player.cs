@@ -12,8 +12,8 @@ namespace mc_clone.src.Entities.Player
         public Camera camera;
         private MouseState prevMouseState;
         private float accelForce = 0.5f;
-        private float jumpForce = 9f;
-        //private float jumpForce = 1f;
+        //private float jumpForce = 9f;
+        private float jumpForce = 1f;
 
         private Vector3 cameraOffset = new Vector3(0, 1.5f, 0);
 
@@ -23,8 +23,8 @@ namespace mc_clone.src.Entities.Player
 
             position = new Vector3(22, 17, 12);
             maxSpeed = 3;
-            dragVector = new Vector3(1.5f, 0f, 1.5f);
-            //dragVector = new Vector3(1.5f, 1.5f, 1.5f);
+            //dragVector = new Vector3(1.5f, 0f, 1.5f);
+            dragVector = new Vector3(1.5f, 1.5f, 1.5f);
             gravityVector = new Vector3(0, -0.5f, 0);
         }
 
@@ -47,10 +47,10 @@ namespace mc_clone.src.Entities.Player
                 ApplyForce(-right * accelForce);
             if (keyState.IsKeyDown(Keys.D))
                 ApplyForce(right * accelForce);
-            if (keyState.IsKeyDown(Keys.Space) && OnGround)
-                ApplyForce(Vector3.Up * jumpForce);
-            //if (keyState.IsKeyDown(Keys.Space))
+            //if (keyState.IsKeyDown(Keys.Space) && OnGround)
             //    ApplyForce(Vector3.Up * jumpForce);
+            if (keyState.IsKeyDown(Keys.Space))
+                ApplyForce(Vector3.Up * jumpForce);
             if (keyState.IsKeyDown(Keys.LeftShift))
                 ApplyForce(-Vector3.Up * accelForce);
 

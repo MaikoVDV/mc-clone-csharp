@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/Water.fx</SourceFile>
+  <SourceTime>2025-03-20T19:14:03.2894079+01:00</SourceTime>
+  <DestFile>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/bin/DesktopGL/Water.xnb</DestFile>
+  <DestTime>2025-03-20T19:15:21.1547382+01:00</DestTime>
+  <Importer>EffectImporter</Importer>
+  <ImporterTime>2022-07-26T13:44:56+02:00</ImporterTime>
+  <Processor>EffectProcessor</Processor>
+  <ProcessorTime>2022-07-26T13:44:56+02:00</ProcessorTime>
+  <Parameters>
+    <Key>DebugMode</Key>
+    <Value>Auto</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput />
+</PipelineBuildEvent>

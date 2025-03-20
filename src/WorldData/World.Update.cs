@@ -49,7 +49,7 @@ namespace mc_clone.src.WorldData
             chunkUpdateBuffer = chunkUpdateBuffer.Distinct().ToList(); // Remove duplicates to prevent unnecessary work.
             foreach (ChunkCoordinates coords in chunkUpdateBuffer)
             {
-                RegenerateChunkMesh(graphicsDevice, coords);
+                RegenerateChunkMeshes(graphicsDevice, coords);
             }
             chunkUpdateBuffer.Clear();
 

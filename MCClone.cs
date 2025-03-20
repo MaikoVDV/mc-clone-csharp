@@ -35,6 +35,21 @@ namespace mc_clone
                 (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Width,
                 (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Height);
 
+
+            // Initialize BasicEffect
+            Globals.basicEffect = Content.Load<Effect>("Effects/Basic");
+            Globals.basicEffect.Parameters["AmbientColor"].SetValue(Color.White.ToVector4());
+            Globals.basicEffect.Parameters["AmbientIntensity"].SetValue(0.1f);
+            Globals.basicEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
+
+            Globals.waterEffect = Content.Load<Effect>("Effects/Water");
+            Globals.waterEffect.Parameters["AmbientColor"].SetValue(Color.White.ToVector4());
+            Globals.waterEffect.Parameters["AmbientIntensity"].SetValue(0.1f);
+            Globals.waterEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
+            Globals.waterEffect.Parameters["Opacity"].SetValue(0.5f);
+            //Globals.waterEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
+            //Globals.waterEffect.Parameters["TextureEnabled"].SetValue(1);
+
             base.LoadContent();
         }
 

@@ -1,0 +1,3 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/texture_atlas.png","F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/bin/DesktopGL/texture_atlas.xnb","TextureProcessor","Texture2DContent",118472,262229,0,0677139
+"F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/Water.fx","F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/bin/DesktopGL/Water.xnb","EffectProcessor","CompiledEffectContent",1249,3043,0,1407248
