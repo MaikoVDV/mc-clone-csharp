@@ -19,12 +19,14 @@ struct VertexShaderInput
 {
     float4 Position : POSITION0;
     float2 TextureCoordinate : TEXCOORD0;
+    float MaterialId : TEXCOORD1;
 };
 
 struct VertexShaderOutput
 {
     float4 Position : SV_POSITION;
     float2 TextureCoordinate : TEXCOORD0;
+    float MaterialId : TEXCOORD1;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
@@ -33,9 +35,10 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
     float4 worldPosition = mul(input.Position, World);
     float4 viewPosition = mul(worldPosition, View);
-    output.Position = mul(viewPosition, Projection);
     
+    output.Position = mul(viewPosition, Projection);
     output.TextureCoordinate = input.TextureCoordinate;
+    output.MaterialId = input.MaterialId;
 
     return output;
 }
@@ -43,13 +46,25 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : SV_Target
 {
     float4 textureColor = tex2D(textureSampler, input.TextureCoordinate);
-    return saturate(textureColor + AmbientColor * AmbientIntensity);
+    float4 result = saturate(textureColor + AmbientColor * AmbientIntensity);
+    
+    int materialId = (int)round(input.MaterialId);
+    if (input.MaterialId == 1.0)
+    {
+        result.a = 0.5;
+    }
+    
+    return result;
 }
 
 technique Diffuse
 {
     pass Pass1
     {
+        AlphaBlendEnable = TRUE;
+        DestBlend = INVSRCALPHA;
+        SrcBlend = SRCALPHA;
+
         VertexShader = compile vs_2_0 VertexShaderFunction();
         PixelShader = compile ps_2_0 PixelShaderFunction();
     }

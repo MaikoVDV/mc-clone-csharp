@@ -38,7 +38,7 @@ namespace mc_clone.src.Entities.Player
         // Rotation
         private float pitch = 0f; // Up/Down rotation
         private float yaw = 0f;   // Left/Right rotation
-        private float _sensitivity = 0.002f; // Mouse sensitivity
+        private float _sensitivity = 0.15f; // Mouse sensitivity
 
         // Projection
         private Matrix view, projection;
@@ -74,11 +74,11 @@ namespace mc_clone.src.Entities.Player
             int centerX = graphicsDevice.Viewport.Width / 2;
             int centerY = graphicsDevice.Viewport.Height / 2;
 
-            float deltaX = mouseState.X - centerX;
+            float deltaX = (mouseState.X - centerX);
             float deltaY = mouseState.Y - centerY;
 
-            yaw += deltaX * _sensitivity;
-            pitch -= deltaY * _sensitivity;
+            yaw += deltaX * _sensitivity * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            pitch -= deltaY * _sensitivity * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // Clamp vertical rotation to avoid flipping
             pitch = MathHelper.Clamp(pitch, -MathHelper.PiOver2 + 0.1f, MathHelper.PiOver2 - 0.1f);

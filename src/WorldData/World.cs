@@ -7,6 +7,7 @@ using mc_clone.src.WorldData.Blocks;
 using System.Diagnostics;
 using System.Linq;
 using mc_clone.src.WorldData.Blocks.Behaviors;
+using System.Security.Cryptography.X509Certificates;
 
 namespace mc_clone.src.WorldData
 {
@@ -14,10 +15,12 @@ namespace mc_clone.src.WorldData
     {
         private Dictionary<ChunkCoordinates, Chunk> chunks = new();
         private Texture2D textureAtlas;
+        public Player player;
 
-        public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas)
+        public World(GraphicsDevice graphicsDevice, Texture2D textureAtlas, Camera playerCam)
         {
             this.textureAtlas = textureAtlas;
+            player = new Player(this, playerCam);
 
             chunks.Add(ChunkCoordinates.Zero, new Chunk(ChunkCoordinates.Zero));
             chunks.Add(new ChunkCoordinates(1, 0, 0), new Chunk(new ChunkCoordinates(1, 0, 0)));
@@ -35,48 +38,43 @@ namespace mc_clone.src.WorldData
         }
 
 
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        public void Draw(GraphicsDevice graphicsDevice)
         {
-            (Matrix view, Matrix projection) = camera.Matrices;
+            (Matrix view, Matrix projection) = player.camera.Matrices;
 
-            foreach (var chunkMeshList in chunkMeshes)
+            // Sort chunks based on distance to camera
+            chunkMeshes = chunkMeshes.OrderByDescending(meshKvp => 
+                    Vector3.Distance(meshKvp.Key.GetCenter(), player.camera.Position))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            foreach ((var coords, var meshParts) in chunkMeshes)
             {
+                if (!chunks.ContainsKey(coords)) continue;
 
-                ChunkCoordinates coords = chunkMeshList.Key;
                 Matrix world = Matrix.CreateTranslation(
                                 coords.X * Globals.CHUNK_SIZE_XZ,
                                 coords.Y * Globals.CHUNK_SIZE_Y,
                                 coords.Z * Globals.CHUNK_SIZE_XZ);
 
-                foreach (var mesh in chunkMeshList.Value)
+                foreach (var meshPart in meshParts)
                 {
-                    if (mesh.vertexBuffer == null || mesh.indexBuffer == null) continue;
-                    Effect currentEffect = mesh.effect;
+                    if (meshPart.vertexBuffer == null || meshPart.indexBuffer == null) continue;
+                    Effect currentEffect = meshPart.effect;
 
                     currentEffect.Parameters["View"].SetValue(view);
                     currentEffect.Parameters["Projection"].SetValue(projection);
                     currentEffect.Parameters["World"].SetValue(world);
 
-                    //Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(mesh.ParentBone.Transform * world));
-                    //Matrix worldInverseTransposeMatrix = Matrix.Transpose(Matrix.Invert(world));
-                    //currentEffect.Parameters["WorldInverseTranspose"].SetValue(worldInverseTransposeMatrix);
-
-                    //currentEffect.Parameters["DiffuseLightDirection"].SetValue(new Vector3(0.7f, 0.5f, 0.2f));
-                    //currentEffect.Parameters["DiffuseColor"].SetValue(Color.White.ToVector4());
-                    //currentEffect.Parameters["DiffuseIntensity"].SetValue(1.0f);
-
-
-
                     // Load faces
-                    graphicsDevice.SetVertexBuffer(mesh.vertexBuffer);
-                    graphicsDevice.Indices = mesh.indexBuffer;
+                    graphicsDevice.SetVertexBuffer(meshPart.vertexBuffer);
+                    graphicsDevice.Indices = meshPart.indexBuffer;
 
 
                     // Apply effect and draw
                     foreach (EffectPass pass in currentEffect.CurrentTechnique.Passes)
                     {
                         pass.Apply();
-                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.indexBuffer.IndexCount / 3);
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, meshPart.indexBuffer.IndexCount / 3);
                     }
                 }
             }

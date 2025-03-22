@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Xml.Schema;
 
 namespace mc_clone.src.WorldData.Blocks
 {
@@ -34,13 +35,24 @@ namespace mc_clone.src.WorldData.Blocks
     {
         public CardinalDirection direction;
         public Vector3[] vertices;
-        //public (int x, int y) textureCoords; // Integer coordinates for which part of the texture atlas. These are NOT UV coordinates.
 
-        public BlockFace(CardinalDirection direction /*, (int x, int y) textureCoords*/)
+        public Vector3 centerPosition
+        {
+            get
+            {
+                Vector3 vertexPositions = Vector3.Zero;
+                foreach (var vertex in vertices)
+                {
+                    vertexPositions += vertex;
+                }
+                return vertexPositions / vertices.Length;
+            }
+        }
+
+        public BlockFace(CardinalDirection direction)
         {
             this.direction = direction;
             this.vertices = direction.ToDefaultVertices();
-            //this.textureCoords = textureCoords;
         }
     }
 }

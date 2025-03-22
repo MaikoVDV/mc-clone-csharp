@@ -10,7 +10,6 @@ namespace mc_clone.src.WorldData.Blocks
         public bool isSolid = true;
         public IBlockBehavior behavior;
         public BlockData dataObject;
-        public Effect effect = Globals.basicEffect;
     }
 
     public static class BlockPropertyRegistry
@@ -20,12 +19,12 @@ namespace mc_clone.src.WorldData.Blocks
             { BlockType.Stone, new BlockProperties { } },
             { BlockType.Grass, new BlockProperties { } },
             { BlockType.Dirt,  new BlockProperties { } },
+            { BlockType.Glass,  new BlockProperties { isSolid = false } },
             // There might be a problem that multiple blocks use the same BlockData object here?
             { BlockType.Water, new BlockProperties {
                 isSolid = false,
                 behavior = new LiquidBehavior(),
                 dataObject = new LiquidData(),
-                effect = Globals.waterEffect,
             } },
         };
 

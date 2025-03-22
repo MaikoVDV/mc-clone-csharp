@@ -12,7 +12,6 @@ namespace mc_clone
         private GraphicsDeviceManager _graphics;
         private Texture2D _textureAtlas;
 
-        private Player player;
         private World world;
 
         private bool paused = false;
@@ -30,7 +29,7 @@ namespace mc_clone
 
         protected override void LoadContent()
         {
-            _textureAtlas = Content.Load<Texture2D>("texture_atlas");
+            _textureAtlas = Content.Load<Texture2D>("texture_atlas_new");
             Globals.TEXTURE_STEP_FACTOR = new Vector2(
                 (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Width,
                 (float)Globals.TEXTURE_WIDTH / (float)_textureAtlas.Height);
@@ -42,14 +41,6 @@ namespace mc_clone
             Globals.basicEffect.Parameters["AmbientIntensity"].SetValue(0.1f);
             Globals.basicEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
 
-            Globals.waterEffect = Content.Load<Effect>("Effects/Water");
-            Globals.waterEffect.Parameters["AmbientColor"].SetValue(Color.White.ToVector4());
-            Globals.waterEffect.Parameters["AmbientIntensity"].SetValue(0.1f);
-            Globals.waterEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
-            Globals.waterEffect.Parameters["Opacity"].SetValue(0.5f);
-            //Globals.waterEffect.Parameters["ModelTexture"].SetValue(_textureAtlas);
-            //Globals.waterEffect.Parameters["TextureEnabled"].SetValue(1);
-
             base.LoadContent();
         }
 
@@ -57,11 +48,7 @@ namespace mc_clone
         {
             base.Initialize();
 
-            world = new World(GraphicsDevice, _textureAtlas);
-
-            // Initialize the player with a camera and reference to the world
-            Camera playerCam = new Camera((_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight));
-            player = new Player(world, playerCam);
+            world = new World(GraphicsDevice, _textureAtlas, new Camera((_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)));
 
             // Configure mouse
             Mouse.SetPosition(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2);
@@ -84,8 +71,12 @@ namespace mc_clone
                     IsMouseVisible = true;
                     paused = true;
                 }
-                world.Update(GraphicsDevice);
-                player.Update(gameTime, GraphicsDevice, keyState, mouseState);
+                world.timeSinceUpdate += gameTime.ElapsedGameTime.TotalSeconds;
+                if (world.timeSinceUpdate > 1 / 20)
+                {
+                    world.Update(GraphicsDevice);
+                }
+                world.player.Update(gameTime, GraphicsDevice, keyState, mouseState);
 
             } else
             {
@@ -105,16 +96,7 @@ namespace mc_clone
             GraphicsDevice.Clear(Color.CornflowerBlue);
             GraphicsDevice.SamplerStates[0] = SamplerState.PointClamp; // Don't interpolated pixel art textures.
 
-            //BasicEffect debugEffect = new BasicEffect(GraphicsDevice);
-            //debugEffect.View = player.camera.Matrices.view;
-            //debugEffect.Projection = player.camera.Matrices.projection;
-            //var rayData = world.CastRay(new Ray(new Vector3(24, 17, 18), Vector3.Down), 0.5f);
-            //debugEffect.World = Matrix.CreateTranslation(rayData.Value.hitPoint);
-            
-            //CubeMesh cubeMesh = new CubeMesh();
-            //GraphicsDevice.SetVertexBuffer(cubeMesh.faces[0].vertices);
-
-            world.Draw(GraphicsDevice, player.camera);
+            world.Draw(GraphicsDevice);
 
             base.Draw(gameTime);
         }

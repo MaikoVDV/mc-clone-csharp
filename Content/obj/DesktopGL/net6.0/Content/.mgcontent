@@ -6,9 +6,11 @@
   <SourceFiles>
     <File>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/Effects/Basic.fx</File>
     <File>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/Effects/Water.fx</File>
+    <File>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/texture_atlas_new.png</File>
     <File>F:/Projects/Programming/Game Development/MonoGame/mc-clone/Content/texture_atlas.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

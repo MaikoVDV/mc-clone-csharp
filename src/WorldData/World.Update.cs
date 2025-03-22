@@ -1,7 +1,8 @@
 ﻿using Microsoft.Xna.Framework.Graphics;
 
 using mc_clone.src.WorldData.Blocks;
-using mc_clone.src.WorldData.Blocks.Behaviors;
+using Microsoft.Xna.Framework;
+
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -10,12 +11,24 @@ namespace mc_clone.src.WorldData
 {
     public partial class World
     {
-        private List<ChunkCoordinates> chunkUpdateBuffer = new();
+        public List<ChunkCoordinates> chunkUpdateBuffer = new();
         private List<(BlockCoordinates, Block, BlockData)> blockSetUpdateBuffer = new();
         private List<BlockCoordinates> neighborChangedUpdateBuffer = new();
 
+        public double timeSinceUpdate = 0;
+
         public void Update(GraphicsDevice graphicsDevice)
         {
+            timeSinceUpdate = 0;
+
+            ChunkCoordinates camCoords = new ChunkCoordinates(player.camera.Position);
+            chunkUpdateBuffer.Add(camCoords);
+            foreach (var neighbor in camCoords.GetNeighborCoordinates())
+            {
+                chunkUpdateBuffer.Add(neighbor.Value);
+            }
+
+
             // Update blocks which are due to be changed. (placed / removed)
             List<(BlockCoordinates, Block, BlockData)> _blockSetUpdateBuffer = blockSetUpdateBuffer;
             blockSetUpdateBuffer = new();

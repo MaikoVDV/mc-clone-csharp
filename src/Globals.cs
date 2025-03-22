@@ -15,6 +15,5 @@ namespace mc_clone
         public static Vector2 TEXTURE_STEP_FACTOR;
 
         public static Effect basicEffect;
-        public static Effect waterEffect;
     }
 }

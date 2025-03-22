@@ -2,6 +2,7 @@
 using System;
 
 using mc_clone.src.WorldData.Blocks;
+using System.Collections.Generic;
 
 namespace mc_clone.src.WorldData
 {
@@ -74,9 +75,9 @@ namespace mc_clone.src.WorldData
         }
         public ChunkCoordinates(Vector3 position)
         {
-            this.x = (int)MathF.Floor(position.X);
-            this.y = (int)MathF.Floor(position.Y);
-            this.z = (int)MathF.Floor(position.Z);
+            this.x = (int)MathF.Floor(position.X / Globals.CHUNK_SIZE_XZ);
+            this.y = (int)MathF.Floor(position.Y / Globals.CHUNK_SIZE_Y);
+            this.z = (int)MathF.Floor(position.Z / Globals.CHUNK_SIZE_XZ);
         }
         public static ChunkCoordinates Zero
         {
@@ -85,6 +86,37 @@ namespace mc_clone.src.WorldData
                 return new ChunkCoordinates(0, 0, 0);
             }
         }
+        public Vector3 ToGlobalVector3()
+        {
+            return new Vector3(
+                this.x * Globals.CHUNK_SIZE_XZ,
+                this.y * Globals.CHUNK_SIZE_Y,
+                this.z * Globals.CHUNK_SIZE_XZ
+                );
+        }
+        public Vector3 GetCenter()
+        {
+            return new Vector3(
+                this.x * Globals.CHUNK_SIZE_XZ + Globals.CHUNK_SIZE_XZ / 2,
+                this.y * Globals.CHUNK_SIZE_Y + Globals.CHUNK_SIZE_Y / 2,
+                this.z * Globals.CHUNK_SIZE_XZ + Globals.CHUNK_SIZE_XZ / 2
+                );
+        }
+        public Dictionary<CardinalDirection, ChunkCoordinates> GetNeighborCoordinates()
+        {
+            Dictionary<CardinalDirection, ChunkCoordinates> result = new();
+            foreach (CardinalDirection direction in Enum.GetValues(typeof(CardinalDirection)))
+            {
+                Vector3 neighborOffset = direction.ToOffsetVector();
+                result.Add(direction,
+                    new ChunkCoordinates(
+                        x + (int)neighborOffset.X,
+                        y + (int)neighborOffset.Y,
+                        z + (int)neighborOffset.Z));
+            }
+            return result;
+        }
+
         public override string ToString()
         {
             return $"ChunkCoordinates ({x}, {y}, {z})";
@@ -117,16 +149,6 @@ namespace mc_clone.src.WorldData
         public static ChunkCoordinates operator -(ChunkCoordinates a, ChunkCoordinates b)
         {
             return new ChunkCoordinates(a.x - b.x, a.y - b.y, a.z - b.z);
-        }
-        public static ChunkCoordinates operator +(ChunkCoordinates a, Vector3 b)
-        {
-            ChunkCoordinates bNew = new ChunkCoordinates(b);
-            return a + bNew;
-        }
-        public static ChunkCoordinates operator -(ChunkCoordinates a, Vector3 b)
-        {
-            ChunkCoordinates bNew = new ChunkCoordinates(b);
-            return a - bNew;
         }
     }
 }
